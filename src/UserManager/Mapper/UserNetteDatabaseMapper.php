@@ -20,6 +20,19 @@ class UserNetteDatabaseMapper extends AbstractNetteDatabaseMapper implements IMa
 	/** @var boolean TRUE - find deleted row */
 	private $deleted;
 
+	/** @var array */
+	public $onBeforeSave = [];
+	/** @var array */
+	public $onAfterSave = [];
+	/** @var array */
+	public $onBeforeDelete = [];
+	/** @var array */
+	public $onAfterDelete = [];
+	/** @var array */
+	public $onBeforeDeletePermanently = [];
+	/** @var array */
+	public $onAfterDeletePermanently = [];
+
 	/**
 	 * UserNetteDatabaseMapper constructor.
 	 *
@@ -41,6 +54,8 @@ class UserNetteDatabaseMapper extends AbstractNetteDatabaseMapper implements IMa
 	{
 		$data = $this->itemToData($item);
 		$retSave = false;
+
+		$this->onBeforeSave($item);
 
 		if (!$item->id) { // new --> insert
 
@@ -69,6 +84,8 @@ class UserNetteDatabaseMapper extends AbstractNetteDatabaseMapper implements IMa
 			$this->saveAuthDrivers($item);
 			$retSave = true;
 		}
+
+		$this->onAfterSave($item);
 
 		return $retSave;
 	}
@@ -238,8 +255,11 @@ class UserNetteDatabaseMapper extends AbstractNetteDatabaseMapper implements IMa
 	 */
 	public function delete($id)
 	{
+
 		$deletedRow = 0;
 		if (($item = $this->find($id))) {
+
+			$this->onBeforeDelete($item);
 
 			$deleted = $this->deleted;
 			$this->deleted = true;
@@ -252,7 +272,10 @@ class UserNetteDatabaseMapper extends AbstractNetteDatabaseMapper implements IMa
 					]
 				);
 
+			$this->onAfterDelete($item);
+
 			$this->deleted = $deleted;
+
 		}
 		return $deletedRow > 0;
 	}
@@ -306,12 +329,16 @@ class UserNetteDatabaseMapper extends AbstractNetteDatabaseMapper implements IMa
 		$deletedRow = 0;
 		if (($item = $this->find($id))) {
 
+			$this->onBeforeDeletePermanently($item);
+
 			$deleted = $this->deleted;
 			$this->deleted = true;
 
 			$deletedRow = $this->getTable()
 				->where("UserID", $id)
 				->delete();
+
+			$this->onAfterDeletePermanently($id);
 
 			$this->deleted = $deleted;
 		}
