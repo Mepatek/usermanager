@@ -216,6 +216,45 @@ class Authenticator implements IAuthenticator
 	}
 
 	/**
+	 * Generate random password with length
+	 *
+	 * @param integer $length length of password
+	 * @param integer $minLevel Minimum level safe of password
+	 *
+	 * @return string
+	 */
+	public function generateRandomPassword($length, $minLevel)
+	{
+		$sets = array();
+		if($minLevel>=1) {
+			$sets[] = 'abcdefghijklmnopqrstuvwxyz';
+		}
+		if($minLevel>=2) {
+			$sets[] = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		}
+		if($minLevel>=3) {
+			$sets[] = '0123456789';
+		}
+		if($minLevel>=4) {
+			$sets[] = '!@#$%&*?';
+		}
+
+		$all = '';
+		$password = '';
+		foreach($sets as $set)
+		{
+			$password .= $set[array_rand(str_split($set))];
+			$all .= $set;
+		}
+		$all = str_split($all);
+		for($i = 0; $i < $length - count($sets); $i++)
+			$password .= $all[array_rand($all)];
+		$password = str_shuffle($password);
+		return $password;
+
+	}
+
+	/**
 	 * Add authDriver
 	 *
 	 * @param IAuthDriver $authDriver

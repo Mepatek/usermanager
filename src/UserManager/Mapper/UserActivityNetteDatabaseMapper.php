@@ -56,7 +56,6 @@ class UserActivityNetteDatabaseMapper extends AbstractNetteDatabaseMapper implem
 		} else { // update
 			unset($data["UserActivityID"]);
 			unset($data["ActivityDateTime"]);
-			unset($data["IP"]);
 
 			$row = $this->getTable()
 				->where("UserActivityID", $item->id)
