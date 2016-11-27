@@ -15,7 +15,9 @@ use Adldap\Models,
 class AdLdapAuthDriver implements IAuthDriver
 {
 	/** @var Adldap */
-	protected $ad;
+	protected $ad = null;
+	/** @var array */
+protected $adConfig;
 	/** @var false|true|array true = all users, array = user in group [group1, group2, ...] */
 	protected $autoAddNewUsersInGroups;
 	/** @var boolean true = auto update roles in authenticate method */
@@ -35,21 +37,21 @@ class AdLdapAuthDriver implements IAuthDriver
 	/**
 	 * AdLdapAuthDriver constructor.
 	 *
-	 * @param array           $config
+	 * @param array           $adConfig
 	 * @param bool            $autoUpdateRole
 	 * @param bool            $autoCreateRole
 	 * @param null|true|array $autoAddNewUsersInGroups
 	 * @param array           $group2Role
 	 */
 	public function __construct(
-		array $config,
+		array $adConfig,
 		$autoUpdateRole = false,
 		$autoCreateRole = false,
 		$autoAddNewUsersInGroups = null,
 		$group2Role = []
 	)
 	{
-		$this->ad = new Adldap($config);
+		$this->adConfig = $adConfig;
 		$this->autoUpdateRole = $autoUpdateRole;
 		$this->autoCreateRole = $autoCreateRole;
 		$this->autoAddNewUsersInGroups = $autoAddNewUsersInGroups;
@@ -79,6 +81,9 @@ class AdLdapAuthDriver implements IAuthDriver
 	 */
 	public function authenticate($username, $password, &$user)
 	{
+		if ($this->ad === null) {
+			$this->ad = new Adldap($this->adConfig);
+		}
 		$authSuccess = false;
 		if ($this->ad->authenticate($username, $password, true)) {
 			$adUser = $this->ad->users()->find($username);
@@ -168,7 +173,7 @@ class AdLdapAuthDriver implements IAuthDriver
 		foreach ($adUser->getMemberOfNames() as $group) {
 			$memberOf[] = \Adldap\Classes\Utilities::unescape($group);
 		}
-		foreach ($this->group2Role as $group=>$role) {
+		foreach ($this->group2Role as $group => $role) {
 			if (in_array($group, $memberOf, true)) {
 				if ($this->roleExists($role)) {
 					$user->addRole($role);
@@ -181,7 +186,9 @@ class AdLdapAuthDriver implements IAuthDriver
 	/**
 	 * True if role exists
 	 * If not exists and autoCreateRole=true, create it
+	 *
 	 * @param string $roleId
+	 *
 	 * @return boolean
 	 */
 	protected function roleExists($roleId)

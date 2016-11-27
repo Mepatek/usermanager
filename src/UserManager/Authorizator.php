@@ -62,7 +62,7 @@ class Authorizator extends Permission
 		// set admin privileges if not set
 		if (!$adminSet) {
 			foreach ($resources as $resource) {
-				$this->allow("admin", $resource->resource, $resource->privileges);
+				$this->allow("admin", $resource->resource, self::ALL);
 			}
 		}
 	}

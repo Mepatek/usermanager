@@ -10,13 +10,29 @@ use Mepatek\Entity\AbstractEntity;
 class ResourceObject extends AbstractEntity
 {
 	/** @var string 100 */
-	protected $resource;
+	protected $resource=null;
 	/** @var string 100 */
 	protected $title;
 	/** @var string */
 	protected $description;
 	/** @var array privilege=>description */
 	protected $privileges = [];
+
+	/**
+	 * @return string
+	 */
+	public function getId()
+	{
+		return $this->resource;
+	}
+
+	/**
+	 * @param string $id
+	 */
+	public function setId($id)
+	{
+		$this->setResource($id);
+	}
 
 	/**
 	 * @return string
@@ -31,7 +47,9 @@ class ResourceObject extends AbstractEntity
 	 */
 	public function setResource($resource)
 	{
-		$this->resource = $this->StringTruncate($resource, 100);
+		if ($this->resource==null) {
+			$this->resource = $this->StringTruncate($resource, 100);
+		}
 	}
 
 	/**
