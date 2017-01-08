@@ -89,7 +89,7 @@ class AclNetteDatabaseMapper extends AbstractNetteDatabaseMapper implements IMap
 		return [
 			"id"    => "AclID",
 			"role"  => "Role",
-			"name"  => "Resource",
+			"resource"  => "Resource",
 			"allow" => "Allow",
 			"deny"  => "Deny",
 		];

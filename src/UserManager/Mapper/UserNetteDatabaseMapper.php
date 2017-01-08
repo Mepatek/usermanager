@@ -97,7 +97,7 @@ class UserNetteDatabaseMapper extends AbstractNetteDatabaseMapper implements IMa
 	 *
 	 * @return array
 	 */
-	private function itemToData(User $item)
+	protected function itemToData(User $item)
 	{
 		$data = [];
 
@@ -416,12 +416,15 @@ class UserNetteDatabaseMapper extends AbstractNetteDatabaseMapper implements IMa
 	 * from data to item
 	 *
 	 * @param \Nette\Database\IRow $data
+	 * @param mixed                $item
 	 *
 	 * @return User
 	 */
-	protected function dataToItem($data)
+	protected function dataToItem($data, $item = null)
 	{
-		$item = new User;
+		if ($item === null) {
+			$item = new User;
+		}
 
 		foreach ($this->mapItemPropertySQLNames() as $property => $columnSql) {
 			$item->$property = $data->$columnSql;
