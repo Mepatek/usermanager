@@ -27,10 +27,12 @@ class Authorizator extends Permission
 	public function __construct(IStorage $storage, RoleRepository $roleRepository, ResourceRepository $resourceRepository, AclRepository $aclRepository)
 	{
 		// roles
-		$roles = $roleRepository->findBy(["NOT role" => ["admin", "guest"]]);
+		$roles = $roleRepository->findBy(["NOT role" => ["admin", "guest", "authenticated"]]);
 
 		$this->addRole("guest");    // special role for not logged in users
 		$this->addRole("admin");    // special role for admin -> all privileges if not set in acl
+		$this->addRole("authenticated");    // special role for user withour any role
+
 
 		foreach ($roles as $role) {
 			$this->addRole($role->role);
