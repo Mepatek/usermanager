@@ -28,7 +28,14 @@ class UsersListControl extends Control
 
 	public function render()
 	{
+		$template = $this->template;
 
+//		if (isset($this->parent->translator)) {
+//			$template->setTranslator($this->parent->translator);
+//		}
+
+
+		$template->render(__DIR__ . '/UsersListControl.latte');
 	}
 
 
