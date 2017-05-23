@@ -17,7 +17,7 @@ class AdLdapAuthDriver implements IAuthDriver
 	/** @var Adldap */
 	protected $ad = null;
 	/** @var array */
-protected $adConfig;
+	protected $adConfig;
 	/** @var false|true|array true = all users, array = user in group [group1, group2, ...] */
 	protected $autoAddNewUsersInGroups;
 	/** @var boolean true = auto update roles in authenticate method */

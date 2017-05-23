@@ -16,7 +16,8 @@
     "nette/forms": "~2.4",
     "nette/application": "~2.4",
     "mepatek/application": "~1",
-    "adldap2/adldap2": "~7"
+    "adldap2/adldap2": "~7",
+    "ublaboo/datagrid": "^5.2"
   },
   "require-dev": {
     "nette/tester": "~1.7"
