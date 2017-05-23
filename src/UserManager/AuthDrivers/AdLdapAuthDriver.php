@@ -85,9 +85,9 @@ class AdLdapAuthDriver implements IAuthDriver
 			$this->ad = new Adldap($this->adConfig);
 		}
 		$authSuccess = false;
-		if ($this->ad->authenticate($username, $password, true)) {
-			$adUser = $this->ad->users()->find($username);
-			$sid = \Adldap\Classes\Utilities::binarySidToText($adUser->getObjectSID());
+		if ($this->ad->auth()->attempt($username, $password, true)) {
+			$adUser = $this->ad->search()->find($username);
+			$sid = $adUser->getConvertedSid();
 
 			if ($user === null and $this->hasAutoAddUser($adUser)) {
 				$user = $this->createUserFromAd($adUser);
@@ -120,8 +120,8 @@ class AdLdapAuthDriver implements IAuthDriver
 			return false;
 		}
 
-		foreach ($adUser->getMemberOfNames() as $group) {
-			$group = \Adldap\Classes\Utilities::unescape($group);
+		foreach ($adUser->getGroupNames() as $group) {
+//			$group = \Adldap\Classes\Utilities::unescape($group);
 			if (in_array($group, $this->autoAddNewUsersInGroups, true)) {
 				return true;
 			}
@@ -169,10 +169,7 @@ class AdLdapAuthDriver implements IAuthDriver
 	 */
 	protected function updateRole(User &$user, Models\User $adUser)
 	{
-		$memberOf = [];
-		foreach ($adUser->getMemberOfNames() as $group) {
-			$memberOf[] = \Adldap\Classes\Utilities::unescape($group);
-		}
+		$memberOf = $adUser->getGroupNames();
 		foreach ($this->group2Role as $group => $role) {
 			if (in_array($group, $memberOf, true)) {
 				if ($this->roleExists($role)) {
