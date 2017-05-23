@@ -1,23 +1,48 @@
 <?php
-namespace Mepatek\UserManager\Entity;
 
-use Mepatek\Entity\AbstractEntity;
+namespace App\Mepatek\UserManager\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Class Acl
+ * @ORM\Entity
+ * @ORM\Table(
+ *     name="RolesAcl",
+ *     indexes={
+ *     @ORM\Index(name="IDX_RolesAcl_Resource", columns={"Resource"}),
+ * })
+ *
  * @package Mepatek\UserManager\Entity
  */
-class Acl extends AbstractEntity
+class Acl
 {
-	/** @var int primary */
+	/**
+	 * @ORM\Id
+	 * @ORM\Column(type="integer", name="AclID")
+	 * @ORM\GeneratedValue
+	 * @var integer
+	 */
 	protected $id = null;
-	/** @var string 30 */
+	/**
+	 * @ORM\ManyToOne(targetEntity="Role")
+	 * @ORM\JoinColumn(name="Role", referencedColumnName="Role")
+	 * @var Role
+	 */
 	protected $role;
-	/** @var string 100 */
+	/**
+	 * @ORM\Column(type="string", length=100, name="Resource")
+	 * @var string
+	 */
 	protected $resource;
-	/** @var array|null */
+	/**
+	 * @ORM\Column(type="string", length=255, name="Allow", nullable=true)
+	 * @var array|null
+	 */
 	protected $allow = null;
-	/** @var array|null */
+	/**
+	 * @ORM\Column(type="string", length=255, name="Deny", nullable=true)
+	 * @var array|null
+	 */
 	protected $deny = null;
 
 	/**
@@ -33,13 +58,11 @@ class Acl extends AbstractEntity
 	 */
 	public function setId($id)
 	{
-		if ($this->id === null) {
-			$this->id = $id;
-		}
+		$this->id = $id;
 	}
 
 	/**
-	 * @return string
+	 * @return Role
 	 */
 	public function getRole()
 	{
@@ -47,11 +70,11 @@ class Acl extends AbstractEntity
 	}
 
 	/**
-	 * @param string $role
+	 * @param Role $role
 	 */
 	public function setRole($role)
 	{
-		$this->role = $this->StringTruncate($role, 30);
+		$this->role = $role;
 	}
 
 	/**
@@ -67,8 +90,9 @@ class Acl extends AbstractEntity
 	 */
 	public function setResource($resource)
 	{
-		$this->resource = $this->StringTruncate($resource, 100);
+		$this->resource = $resource;
 	}
+
 
 	/**
 	 * @return string|null

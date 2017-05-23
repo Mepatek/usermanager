@@ -3,27 +3,28 @@
 namespace Mepatek\UserManager\UI\Users;
 
 
-use Mepatek\Components\Ublaboo\DataSources\RepositorySource;
-use Mepatek\UserManager\Repository\UserRepository;
+use App\Mepatek\UserManager\Entity\User;
+use Kdyby\Doctrine\EntityManager;
 use Nette\Application\UI\Control;
 use Ublaboo\DataGrid\DataGrid;
+use Ublaboo\DataGrid\DataSource\DoctrineDataSource;
 
 class UsersListControl extends Control
 {
 
 	/**
-	 * @var UserRepository
+	 * @var EntityManager
 	 */
-	private $userRepository;
+	private $em;
 
 	/**
 	 * UsersListControl constructor.
 	 *
-	 * @param UserRepository $userRepository
+	 * @param EntityManager $em
 	 */
-	public function __construct(UserRepository $userRepository)
+	public function __construct(EntityManager $em)
 	{
-		$this->userRepository = $userRepository;
+		$this->em = $em;
 	}
 
 	public function render()
@@ -45,7 +46,10 @@ class UsersListControl extends Control
 	public function createComponentUsersListGrid($name)
 	{
 		$grid = new DataGrid($this, $name);
-		$data = new RepositorySource( $this->userRepository, "id");
+		$qb = $this->em->createQueryBuilder("users")
+			->select(User::class)
+		;
+		$data = new DoctrineDataSource( $qb, "id");
 		$grid->setDataSource($data);
 
 		$grid->addColumnText("fullName", "Full name");

@@ -1,39 +1,42 @@
 <?php
-namespace Mepatek\UserManager\Entity;
 
-use Mepatek\Entity\AbstractEntity;
+namespace App\Mepatek\UserManager\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Class Role
+ * @ORM\Entity
+ * @ORM\Table(
+ *     name="Roles",
+ *     indexes={
+ *     @ORM\Index(name="IDX_Deleted", columns={"Deleted"}),
+ * })
+ *
  * @package Mepatek\UserManager\Entity
  */
-class Role extends AbstractEntity
+class Role
 {
-	/** @var string 30 */
+	/**
+	 * @ORM\Id
+	 * @ORM\Column(type="string", length=30, name="Role")
+	 * @var string
+	 */
 	protected $role;
-	/** @var string 100 */
+	/**
+	 * @ORM\Column(type="string", length=100, name="RoleName", nullable=true)
+	 * @var string
+	 */
 	protected $name;
-	/** @var string */
+	/**
+	 * @ORM\Column(type="text", name="Description", nullable=true)
+	 * @var string
+	 */
 	protected $description;
-	/** @var string|false - indicated if entity loaded from repository (=loaded role) or entity is new (false) */
-	private $loadedRole = false;
-
 	/**
-	 * @return string|boolean
+	 * @ORM\Column(type="smallint", name="Deleted")
+	 * @var boolean
 	 */
-	public function getLoadedRole()
-	{
-		return $this->loadedRole;
-	}
-
-	/**
-	 * @param string $loadedRole
-	 */
-	public function setLoadedRole($loadedRole)
-	{
-		// only once set string
-		$this->loadedRole = (string)$loadedRole;
-	}
+	protected $deleted = 0;
 
 	/**
 	 * @return string
@@ -48,7 +51,7 @@ class Role extends AbstractEntity
 	 */
 	public function setRole($role)
 	{
-		$this->role = $this->StringTruncate($role, 30);
+		$this->role = $role;
 	}
 
 	/**
@@ -64,7 +67,7 @@ class Role extends AbstractEntity
 	 */
 	public function setName($name)
 	{
-		$this->name = $this->StringTruncate($name, 100);
+		$this->name = $name;
 	}
 
 	/**
@@ -81,6 +84,22 @@ class Role extends AbstractEntity
 	public function setDescription($description)
 	{
 		$this->description = $description;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isDeleted()
+	{
+		return $this->deleted;
+	}
+
+	/**
+	 * @param bool $deleted
+	 */
+	public function setDeleted($deleted)
+	{
+		$this->deleted = $deleted;
 	}
 
 }

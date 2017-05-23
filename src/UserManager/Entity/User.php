@@ -1,8 +1,8 @@
 <?php
-namespace Mepatek\UserManager\Entity;
 
-use Mepatek\Entity\AbstractEntity;
+namespace App\Mepatek\UserManager\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 
@@ -19,7 +19,7 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @package Mepatek\UserManager\Entity
  */
-class User extends AbstractEntity
+class User
 {
 	/**
 	 * @ORM\Id
@@ -29,7 +29,7 @@ class User extends AbstractEntity
 	 */
 	protected $id = null;
 	/**
-	 * @ORM\Column(type="string", length=255, name="FullName")
+	 * @ORM\Column(type="string", length=255, name="FullName", nullable=true)
 	 * @var string
 	 */
 	protected $fullName;
@@ -44,38 +44,38 @@ class User extends AbstractEntity
 	 */
 	protected $email;
 	/**
-	 * @ORM\Column(type="string", length=255, name="Phone")
+	 * @ORM\Column(type="string", length=255, name="Phone", nullable=true)
 	 * @var string
 	 */
 	protected $phone;
 	/**
-	 * @ORM\Column(type="string", length=100, name="Title")
+	 * @ORM\Column(type="string", length=100, name="Title", nullable=true)
 	 * @var string
 	 */
 	protected $title;
 	/**
-	 * @ORM\Column(type="string", length=10, name="Language")
+	 * @ORM\Column(type="string", length=10, name="Language", nullable=true)
 	 * @var string
 	 */
 	protected $language;
 	/**
-	 * @ORM\Column(type="text", name="Thumbnail")
+	 * @ORM\Column(type="text", name="Thumbnail", nullable=true)
 	 * encoded image for atribute src
 	 * @var string
 	 */
 	protected $thumbnail;
 	/**
-	 * @ORM\Column(type="datetime", name="Created")
+	 * @ORM\Column(type="datetime", name="Created", nullable=true)
 	 * @var \DateTime
 	 */
 	protected $created;
 	/**
-	 * @ORM\Column(type="datetime", name="LastLogged")
+	 * @ORM\Column(type="datetime", name="LastLogged", nullable=true)
 	 * @var \DateTime
 	 */
 	protected $lastLogged;
 	/**
-	 * @ORM\Column(type="smallint", name="Disabled")
+	 * @ORM\Column(type="smallint", name="Disabled", nullable=true)
 	 * @var boolean
 	 */
 	protected $disabled = false;
@@ -84,15 +84,30 @@ class User extends AbstractEntity
 	 * @var boolean
 	 */
 	protected $deleted = false;
+	/**
+	 * @ORM\ManyToMany(targetEntity="Role")
+	 * @ORM\JoinTable(name="UsersRoles",
+	 *      joinColumns={@JoinColumn(name="UserID", referencedColumnName="ZserID")},
+	 *      inverseJoinColumns={@JoinColumn(name="Role", referencedColumnName="Role")}
+	 *      )
+	 * @var Role[]
+	 */
+	protected $roles;
 
-	/** @var array */
-	protected $roles = [];
-
-	/** @var array authDriverName=>authId */
+	/**
+	 * @ORM\OneToMany(targetEntity="AuthDriver", mappedBy="user")
+	 * @var AuthDriver[]
+	 */
 	protected $authDrivers = [];
 
 	/** @var string */
 	protected $authMethod;
+
+
+	public function __construct() {
+		$this->roles = new ArrayCollection();
+		$this->authDrivers = new ArrayCollection();
+	}
 
 	/**
 	 * @return int
@@ -107,10 +122,7 @@ class User extends AbstractEntity
 	 */
 	public function setId($id)
 	{
-		// ONLY if id is not set
-		if (!$this->id) {
-			$this->id = (int)$id;
-		}
+		$this->id = $id;
 	}
 
 	/**
@@ -126,7 +138,7 @@ class User extends AbstractEntity
 	 */
 	public function setFullName($fullName)
 	{
-		$this->fullName = $this->StringTruncate($fullName, 255);
+		$this->fullName = $fullName;
 	}
 
 	/**
@@ -142,7 +154,7 @@ class User extends AbstractEntity
 	 */
 	public function setUserName($userName)
 	{
-		$this->userName = $this->StringTruncate($userName, 50);
+		$this->userName = $userName;
 	}
 
 	/**
@@ -158,7 +170,7 @@ class User extends AbstractEntity
 	 */
 	public function setEmail($email)
 	{
-		$this->email = $this->StringTruncate($email);
+		$this->email = $email;
 	}
 
 	/**
@@ -174,7 +186,7 @@ class User extends AbstractEntity
 	 */
 	public function setPhone($phone)
 	{
-		$this->phone = $this->StringTruncate($phone, 255);
+		$this->phone = $phone;
 	}
 
 	/**
@@ -190,7 +202,7 @@ class User extends AbstractEntity
 	 */
 	public function setTitle($title)
 	{
-		$this->title = $this->StringTruncate($title, 100);
+		$this->title = $title;
 	}
 
 	/**
@@ -206,7 +218,7 @@ class User extends AbstractEntity
 	 */
 	public function setLanguage($language)
 	{
-		$this->language = $this->StringTruncate($language, 10);
+		$this->language = $language;
 	}
 
 	/**
@@ -226,7 +238,7 @@ class User extends AbstractEntity
 	}
 
 	/**
-	 * @return \Nette\Utils\DateTime
+	 * @return \DateTime
 	 */
 	public function getCreated()
 	{
@@ -234,15 +246,15 @@ class User extends AbstractEntity
 	}
 
 	/**
-	 * @param \Nette\Utils\DateTime $created
+	 * @param \DateTime $created
 	 */
 	public function setCreated($created)
 	{
-		$this->created = $this->DateTime($created);
+		$this->created = $created;
 	}
 
 	/**
-	 * @return \Nette\Utils\DateTime
+	 * @return \DateTime
 	 */
 	public function getLastLogged()
 	{
@@ -250,45 +262,76 @@ class User extends AbstractEntity
 	}
 
 	/**
-	 * @param \Nette\Utils\DateTime $lastLogged
+	 * @param \DateTime $lastLogged
 	 */
 	public function setLastLogged($lastLogged)
 	{
-		$this->lastLogged = $this->DateTime($lastLogged);
+		$this->lastLogged = $lastLogged;
 	}
 
 	/**
-	 * @return boolean
+	 * @return bool
 	 */
-	public function getDisabled()
+	public function isDisabled()
 	{
-		return $this->disabled ? true : false;
+		return $this->disabled;
 	}
 
 	/**
-	 * @param boolean $disabled
+	 * @param bool $disabled
 	 */
 	public function setDisabled($disabled)
 	{
-		$this->disabled = $disabled ? true : false;
+		$this->disabled = $disabled;
 	}
 
 	/**
-	 * @return boolean
+	 * @return bool
 	 */
-	public function getDeleted()
+	public function isDeleted()
 	{
-		return $this->deleted ? true : false;
+		return $this->deleted;
 	}
 
 	/**
-	 * @param boolean $deleted
+	 * @param bool $deleted
 	 */
 	public function setDeleted($deleted)
 	{
-		$this->deleted = $deleted ? true : false;
+		$this->deleted = $deleted;
 	}
 
+	/**
+	 * @return Role[]
+	 */
+	public function getRoles()
+	{
+		return $this->roles;
+	}
+
+	/**
+	 * @param Role[] $roles
+	 */
+	public function setRoles($roles)
+	{
+		$this->roles = $roles;
+	}
+
+	/**
+	 * @return AuthDriver[]
+	 */
+	public function getAuthDrivers()
+	{
+		return $this->authDrivers;
+	}
+
+	/**
+	 * @param AuthDriver[] $authDrivers
+	 */
+	public function setAuthDrivers($authDrivers)
+	{
+		$this->authDrivers = $authDrivers;
+	}
 
 	/**
 	 * @return string
@@ -304,107 +347,6 @@ class User extends AbstractEntity
 	public function setAuthMethod($authMethod)
 	{
 		$this->authMethod = $authMethod;
-	}
-
-	/**
-	 * Get role array
-	 * @return Role[]
-	 */
-	public function getRoles()
-	{
-		return array_values($this->roles);
-	}
-
-	/**
-	 * @param array $roles
-	 */
-	public function setRoles(array $roles)
-	{
-		$this->deleteAllRoles();
-		foreach ($roles as $role) {
-			$this->addRole($role);
-		}
-	}
-
-	/**
-	 * delete all roles
-	 */
-	public function deleteAllRoles()
-	{
-		$this->roles = [];
-	}
-
-	/**
-	 * Add role
-	 *
-	 * @param string $role
-	 */
-	public function addRole($role)
-	{
-		$this->roles[$role] = $role;
-	}
-
-	/**
-	 * Delete role
-	 *
-	 * @param string $role
-	 */
-	public function deleteRole($role)
-	{
-		if (isset($this->roles[$role])) {
-			unset ($this->roles[$role]);
-		}
-	}
-
-	/**
-	 * Get authDrivers with ID
-	 * @return array
-	 */
-	public function getAuthDrivers()
-	{
-		return $this->authDrivers;
-	}
-
-	/**
-	 * @param array $authDrivers
-	 */
-	public function setAuthDrivers(array $authDrivers)
-	{
-		$this->deleteAllAuthDrivers();
-		foreach ($authDrivers as $authDriver => $authId) {
-			$this->addAuthDriver($authDriver, $authId);
-		}
-	}
-
-	/**
-	 * delete all authDrivers
-	 */
-	public function deleteAllAuthDrivers()
-	{
-		$this->authDrivers = [];
-	}
-
-	/**
-	 * Add authDriver
-	 *
-	 * @param string $authDriver
-	 * @param string $authId
-	 */
-	public function addAuthDriver($authDriver, $authId)
-	{
-		$this->authDrivers[$authDriver] = $authId;
-	}
-
-	/**
-	 * Delete authDriver
-	 *
-	 * @param string $authDriver
-	 */
-	public function deleteAuthDriver($authDriver)
-	{
-		if (isset($this->authDrivers[$authDriver])) {
-			unset ($this->authDrivers[$authDriver]);
-		}
 	}
 
 }

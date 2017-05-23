@@ -1,126 +1,58 @@
 <?php
-namespace Mepatek\UserManager\Entity;
 
-use Mepatek\Entity\AbstractEntity;
+namespace App\Mepatek\UserManager\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Class UserActivity
+ * @ORM\Entity
+ * @ORM\Table(
+ *     name="UsersActivity",
+ *     indexes={
+ *     @ORM\Index(name="IDX_Deleted", columns={"Deleted"}),
+ *     @ORM\Index(name="IDX_UserName", columns={"UserName"}),
+ *     @ORM\Index(name="IDX_PwToken", columns={"PwToken"}),
+ *     @ORM\Index(name="IDX_Disabled", columns={"Disabled"}),
+ * })
+ *
  * @package Mepatek\UserManager\Entity
  */
-class UserActivity extends AbstractEntity
+class UserActivity
 {
 
-	/** @var integer */
-	protected $id = null;
-	/** @var integer */
-	protected $userId;
-	/** @var string 50 */
+	/**
+	 * @ORM\Id
+	 * @ORM\Column(type="integer", name="UserActivityID")
+	 * @ORM\GeneratedValue
+	 * @var integer
+	 */
+	protected $id;
+	/**
+	 * @ORM\ManyToOne(targetEntity="Address")
+	 * @ORM\JoinColumn(name="UserID", referencedColumnName="UserID")
+	 * @var User
+	 */
+	protected $user;
+	/**
+	 * @ORM\Column(type="string", length=50, name="IP", nullable=true)
+	 * @var string
+	 */
 	protected $ip;
-	/** @var string 30 */
+	/**
+	 * @ORM\Column(type="string", length=30, name="ActivityType")
+	 * @var string
+	 */
 	protected $type;
-	/** @var \Nette\Utils\DateTime */
+	/**
+	 * @ORM\Column(type="datetime", name="RoleName")
+	 * @var \DateTime
+	 */
 	protected $datetime;
-	/** @var string */
+	/**
+	 * @ORM\Column(type="text", name="Description", nullable=true)
+	 * @var string
+	 */
 	protected $description;
-
-	/**
-	 * @return int
-	 */
-	public function getId()
-	{
-		return $this->id;
-	}
-
-	/**
-	 * @param int $id
-	 */
-	public function setId($id)
-	{
-		// ONLY if id is not set
-		if (!$this->id) {
-			$this->id = (int)$id;
-		}
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getUserId()
-	{
-		return $this->userId;
-	}
-
-	/**
-	 * @param int $userId
-	 */
-	public function setUserId($userId)
-	{
-		$this->userId = $userId;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getIp()
-	{
-		return $this->ip;
-	}
-
-	/**
-	 * @param string $ip
-	 */
-	public function setIp($ip)
-	{
-		$this->ip = $this->StringTruncate($ip, 50);
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getType()
-	{
-		return $this->type;
-	}
-
-	/**
-	 * @param string $type
-	 */
-	public function setType($type)
-	{
-		$this->type = $this->StringTruncate($type, 30);
-	}
-
-	/**
-	 * @return \Nette\Utils\DateTime
-	 */
-	public function getDatetime()
-	{
-		return $this->datetime;
-	}
-
-	/**
-	 * @param \Nette\Utils\DateTime $datetime
-	 */
-	public function setDatetime($datetime)
-	{
-		$this->datetime = $this->DateTime($datetime);
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getDescription()
-	{
-		return $this->description;
-	}
-
-	/**
-	 * @param string $description
-	 */
-	public function setDescription($description)
-	{
-		$this->description = $description;
-	}
 
 
 }

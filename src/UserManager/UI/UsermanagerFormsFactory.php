@@ -3,30 +3,31 @@
 namespace Mepatek\UserManager\UI;
 
 
-use Mepatek\UserManager\Repository\UserRepository;
+use Kdyby\Doctrine\EntityManager;
+
 use Mepatek\UserManager\UI\Users\UsersListControl;
 
 class UsermanagerFormsFactory
 {
 
 	/**
-	 * @var UserRepository
+	 * @var EntityManager
 	 */
-	private $userRepository;
+	private $em;
 
 	/**
 	 * UsermanagerFormsFactory constructor.
 	 *
-	 * @param UserRepository $userRepository
+	 * @param EntityManager $em
 	 */
-	public function __construct(UserRepository $userRepository)
+	public function __construct(EntityManager $em)
 	{
-		$this->userRepository = $userRepository;
+		$this->em = $em;
 	}
 
 	public function createUsersList()
 	{
-		$userList = new UsersListControl($this->userRepository);
+		$userList = new UsersListControl($this->em);
 		return $userList;
 	}
 
