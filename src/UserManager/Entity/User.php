@@ -3,35 +3,86 @@ namespace Mepatek\UserManager\Entity;
 
 use Mepatek\Entity\AbstractEntity;
 
+use Doctrine\ORM\Mapping as ORM;
+
+
 /**
- * Class User
+ * @ORM\Entity
+ * @ORM\Table(
+ *     name="Users",
+ *     indexes={
+ *     @ORM\Index(name="IDX_Deleted", columns={"Deleted"}),
+ *     @ORM\Index(name="IDX_UserName", columns={"UserName"}),
+ *     @ORM\Index(name="IDX_PwToken", columns={"PwToken"}),
+ *     @ORM\Index(name="IDX_Disabled", columns={"Disabled"}),
+ * })
+ *
  * @package Mepatek\UserManager\Entity
  */
 class User extends AbstractEntity
 {
-	/** @var integer */
+	/**
+	 * @ORM\Id
+	 * @ORM\Column(type="integer", name="UserID")
+	 * @ORM\GeneratedValue
+	 * @var integer
+	 */
 	protected $id = null;
-	/** @var string 255 */
+	/**
+	 * @ORM\Column(type="string", length=255, name="FullName")
+	 * @var string
+	 */
 	protected $fullName;
-	/** @var string 50 */
+	/**
+	 * @ORM\Column(type="string", length=50, name="UserName")
+	 * @var string
+	 */
 	protected $userName;
-	/** @var string 255 */
+	/**
+	 * @ORM\Column(type="string", length=255, name="Email")
+	 * @var string
+	 */
 	protected $email;
-	/** @var string 255 */
+	/**
+	 * @ORM\Column(type="string", length=255, name="Phone")
+	 * @var string
+	 */
 	protected $phone;
-	/** @var string 100 */
+	/**
+	 * @ORM\Column(type="string", length=100, name="Title")
+	 * @var string
+	 */
 	protected $title;
-	/** @var string 10 */
+	/**
+	 * @ORM\Column(type="string", length=10, name="Language")
+	 * @var string
+	 */
 	protected $language;
-	/** @var string - encoded image for atribute src */
+	/**
+	 * @ORM\Column(type="text", name="Thumbnail")
+	 * encoded image for atribute src
+	 * @var string
+	 */
 	protected $thumbnail;
-	/** @var \Nette\Utils\DateTime */
+	/**
+	 * @ORM\Column(type="datetime", name="Created")
+	 * @var \DateTime
+	 */
 	protected $created;
-	/** @var \Nette\Utils\DateTime */
+	/**
+	 * @ORM\Column(type="datetime", name="LastLogged")
+	 * @var \DateTime
+	 */
 	protected $lastLogged;
-	/** @var bool */
+	/**
+	 * @ORM\Column(type="smallint", name="Disabled")
+	 * @var boolean
+	 */
 	protected $disabled = false;
-	/** @var bool */
+	/**
+	 * @ORM\Column(type="smallint", name="Deleted")
+	 * @var boolean
+	 */
 	protected $deleted = false;
 
 	/** @var array */
