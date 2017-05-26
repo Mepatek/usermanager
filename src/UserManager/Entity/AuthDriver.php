@@ -18,11 +18,13 @@ class AuthDriver
 {
 
 	/**
+	 * @ORM\Id
 	 * @ORM\ManyToOne(targetEntity="User", inversedBy="authDrivers")
 	 * @ORM\JoinColumn(name="UserID", referencedColumnName="UserID")
 	 */
 	private $user;
 	/**
+	 * @ORM\Id
 	 * @ORM\Column(type="string", length=30, name="AuthDriver")
 	 * @var string
 	 */

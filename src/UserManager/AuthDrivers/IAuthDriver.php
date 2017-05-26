@@ -2,10 +2,8 @@
 
 namespace Mepatek\UserManager\AuthDrivers;
 
-use Mepatek\UserManager\Entity\User,
-	Mepatek\UserManager\Repository\UserRepository,
-	Mepatek\UserManager\Repository\RoleRepository,
-	Mepatek\UserManager\Repository\UserActivityRepository;
+use App\Mepatek\UserManager\Entity\User;
+use Kdyby\Doctrine\EntityManager;
 
 /**
  * Interface IAuthDriver
@@ -17,11 +15,9 @@ interface IAuthDriver
 	/**
 	 * Set Up event
 	 *
-	 * @param UserRepository         $userRepository
-	 * @param RoleRepository         $roleRepository
-	 * @param UserActivityRepository $userActivityRepository
+	 * @param EntityManager $em
 	 */
-	public function setUp(UserRepository $userRepository, RoleRepository $roleRepository, UserActivityRepository $userActivityRepository);
+	public function setUp(EntityManager $em);
 
 	/**
 	 * @param string $username
@@ -30,7 +26,7 @@ interface IAuthDriver
 	 *
 	 * @return boolean
 	 */
-	public function authenticate($username, $password, &$user);
+	public function authenticate($username, $password, User $user);
 
 	/**
 	 * Get auth driver name (max 30char)

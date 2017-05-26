@@ -467,30 +467,4 @@ class UserNetteDatabaseMapper extends AbstractNetteDatabaseMapper implements IMa
 			$item->addAuthDriver($authDriver, $authId);
 		}
 	}
-
-	/**
-	 * Reset and return password token
-	 *
-	 * @param User     $item
-	 * @param DateTime $tokenExpire
-	 *
-	 * @return string new password token
-	 */
-	public function resetPasswordToken(User $item, DateTime $tokenExpire)
-	{
-		$token = md5(md5(uniqid(rand(), true)));
-		$row = $this->getTable()
-			->where("UserID", $item->id)
-			->update(
-				[
-					"PwToken"       => $token,
-					"PwTokenExpire" => $tokenExpire,
-				]
-			);
-		if ($row > 0) {
-			return $token;
-		} else {
-			return null;
-		}
-	}
 }

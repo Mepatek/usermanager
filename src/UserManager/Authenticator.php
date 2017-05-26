@@ -2,16 +2,14 @@
 
 namespace Mepatek\UserManager;
 
-use Nette,
-	Nette\Security,
-	Nette\Security\IAuthenticator,
-	Nette\Utils\DateTime,
-	Mepatek\UserManager\Repository\UserRepository,
-	Mepatek\UserManager\Repository\RoleRepository,
-	Mepatek\UserManager\Repository\UserActivityRepository,
-	Mepatek\UserManager\Entity\User,
-	Mepatek\UserManager\Entity\UserActivity,
+use App\Mepatek\UserManager\Entity\User;
+use App\Mepatek\UserManager\Entity\UserActivity;
+use Kdyby\Doctrine\EntityManager;
+use Nette\Security\AuthenticationException;
+use Nette\Security\IAuthenticator,
 	Mepatek\UserManager\AuthDrivers\IAuthDriver;
+use Nette\Security\Identity;
+use Nette\Security\Passwords;
 
 
 /**
@@ -19,32 +17,20 @@ use Nette,
  */
 class Authenticator implements IAuthenticator
 {
-	/** @var UserRepository */
-	protected $userRepository;
-	/** @var RoleRepository */
-	protected $roleRepository;
-	/** @var UserActivityRepository */
-	protected $userActivityRepository;
+	/** @var EntityManager */
+	protected $em;
 
 	/** @var IAuthDriver[] */
-	protected $authDrivers = array();
+	protected $authDrivers = [];
 
 	/**
 	 * Authenticator constructor.
 	 *
-	 * @param UserRepository         $userRepository
-	 * @param RoleRepository         $roleRepository
-	 * @param UserActivityRepository $userActivityRepository
+	 * @param EntityManager $em
 	 */
-	public function __construct(
-		UserRepository $userRepository,
-		RoleRepository $roleRepository,
-		UserActivityRepository $userActivityRepository
-	)
+	public function __construct(EntityManager $em)
 	{
-		$this->userRepository = $userRepository;
-		$this->roleRepository = $roleRepository;
-		$this->userActivityRepository = $userActivityRepository;
+		$this->em = $em;
 	}
 
 	/**
@@ -52,26 +38,25 @@ class Authenticator implements IAuthenticator
 	 *
 	 * @param array $credentials
 	 *
-	 * @return Nette\Security\Identity
-	 * @throws Nette\Security\AuthenticationException
+	 * @return Identity
+	 * @throws AuthenticationException
 	 */
 	public function authenticate(array $credentials)
 	{
 		list($username, $password) = $credentials;
 
-		$user = $this->userRepository->findOneBy(
-			[
-				"userName" => $username,
-			]
-		);
+		$user = $this->em->getRepository(User::class)
+			->findOneBy(
+				[
+					"userName" => $username,
+				]
+			);
 
 		$authExt = false;
 
 		foreach ($this->authDrivers as $authDriver) {
 			$authDriver->setUp(
-				$this->userRepository,
-				$this->roleRepository,
-				$this->userActivityRepository
+				$this->em
 			);
 			if ($authExt = $authDriver->authenticate($username, $password, $user)) {
 				if ($user) {
@@ -85,22 +70,24 @@ class Authenticator implements IAuthenticator
 
 		if (!$authExt) {
 			if (!$user) {
-				throw new Security\AuthenticationException('Wrong username.', self::IDENTITY_NOT_FOUND);
-			} elseif (!Security\Passwords::verify($password, $this->userRepository->getPassword($user))) {
-				throw new Security\AuthenticationException('Wrong password.', self::INVALID_CREDENTIAL);
+				throw new AuthenticationException('Wrong username.', self::IDENTITY_NOT_FOUND);
+			} elseif (!Passwords::verify($password, $user->getPwHash())) {
+				throw new AuthenticationException('Wrong password.', self::INVALID_CREDENTIAL);
 			}
 		}
 
 		// update lastLogged
-		$user->lastLogged = new DateTime();
-		$this->userRepository->save($user);
+		$user->setLastLogged(new \DateTime());
+		$this->em->persist($user);
 
 		$userActivity = new UserActivity();
-		$userActivity->userId = $user->id;
-		$userActivity->type = "login";
-		$this->userActivityRepository->save($userActivity);
+		$userActivity->setUser($user);
+		$userActivity->setType("login");
+		$this->em->persist($userActivity);
+		$this->em->flush();
 
-		return new Security\Identity($user->id, $user->roles, $user);
+		bdump($user);
+		return new Identity($user->getId(), $user->getIdentityRoles(), $user->getIdentityData());
 	}
 
 	/**
@@ -110,10 +97,14 @@ class Authenticator implements IAuthenticator
 	 */
 	public function logout($userId)
 	{
-		$userActivity = new UserActivity();
-		$userActivity->userId = $userId;
-		$userActivity->type = "logout";
-		$this->userActivityRepository->save($userActivity);
+		$user = $this->em->find(User::class, $userId);
+		if ($user) {
+			$userActivity = new UserActivity();
+			$userActivity->setUser($user);
+			$userActivity->setType("logout");
+			$this->em->persist($userActivity);
+			$this->em->flush($userActivity);
+		}
 	}
 
 	/**
@@ -125,13 +116,19 @@ class Authenticator implements IAuthenticator
 	 */
 	public function resetPasswordToken($email)
 	{
-		$user = $this->userRepository->findOneBy(["email" => $email]);
+		$user = $this->em->getRepository(User::class)
+			->findOneBy(["email" => $email]);
 		// userExist?
 		if ($user) {
-			$tokenExpires = new DateTime();
+			$tokenExpires = new \DateTime();
 			$tokenExpires->add(new \DateInterval('PT60M'));     // 60 min for expire
 
-			$token = $this->userRepository->resetPasswordToken($user, $tokenExpires);
+			try {
+				$token = $user->resetPwToken(new \DateInterval('PT30M'));
+				$this->em->flush($user);
+			} catch (\Exception $e) {
+				$token = null;
+			}
 
 			return $token ? $token : false;
 		} else {
@@ -139,39 +136,42 @@ class Authenticator implements IAuthenticator
 		}
 	}
 
+
 	/**
 	 * Change password for $token
 	 * Set $id to finded user id
 	 *
-	 * @param string $token
-	 * @param string $newPassword
+	 * @param string  $token
+	 * @param string  $newPassword
 	 * @param integer $id
+	 *;
 	 *
 	 * @return boolean
 	 */
 	public function changePasswordToken($token, $newPassword, &$id)
 	{
-		$user = $this->userRepository->findUserByToken($token);
+		$user = $this->em->getRepository(User::class)
+			->createQueryBuilder("user")
+			->where("user.pwToken=:pwToken AND user.pwTokenExpire>=:pwTokenExpire")
+			->getQuery()
+			->setParameters(
+				[
+					":pwToken" => $token,
+					":pwTokenExpire" => new \DateTime(),
+				]
+			)
+			->setMaxResults(1)
+			->getOneOrNullResult()
+			;
 		if ($user) {
-			$id = $user->id;
-			return $this->changePassword($user->id, $newPassword);
+			$id = $user->getId();
+			$user->changePassword(Passwords::hash($newPassword));
+			$this->em->flush();
 		} else {
 			return false;
 		}
 	}
 
-	/**
-	 * Change password and reset tokens.
-	 *
-	 * @param integer $userId
-	 * @param string  $newPassword
-	 *
-	 * @return boolean
-	 */
-	public function changePassword($userId, $newPassword)
-	{
-		return $this->userRepository->changePassword($userId, Nette\Security\Passwords::hash($newPassword));
-	}
 
 	/**
 	 * Check password length and check password complexity
@@ -225,30 +225,30 @@ class Authenticator implements IAuthenticator
 	 */
 	public function generateRandomPassword($length, $minLevel)
 	{
-		$sets = array();
-		if($minLevel>=1) {
+		$sets = [];
+		if ($minLevel >= 1) {
 			$sets[] = 'abcdefghijklmnopqrstuvwxyz';
 		}
-		if($minLevel>=2) {
+		if ($minLevel >= 2) {
 			$sets[] = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 		}
-		if($minLevel>=3) {
+		if ($minLevel >= 3) {
 			$sets[] = '0123456789';
 		}
-		if($minLevel>=4) {
+		if ($minLevel >= 4) {
 			$sets[] = '!@#$%&*?';
 		}
 
 		$all = '';
 		$password = '';
-		foreach($sets as $set)
-		{
+		foreach ($sets as $set) {
 			$password .= $set[array_rand(str_split($set))];
 			$all .= $set;
 		}
 		$all = str_split($all);
-		for($i = 0; $i < $length - count($sets); $i++)
+		for ($i = 0; $i < $length - count($sets); $i++) {
 			$password .= $all[array_rand($all)];
+		}
 		$password = str_shuffle($password);
 		return $password;
 

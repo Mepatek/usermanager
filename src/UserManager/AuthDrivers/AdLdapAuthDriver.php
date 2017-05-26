@@ -4,13 +4,12 @@ namespace Mepatek\UserManager\AuthDrivers;
 
 use Adldap\Models,
 	Adldap\Adldap,
-	Adldap\Connections\Configuration,
-	Mepatek\UserManager\Repository\UserRepository,
-	Mepatek\UserManager\Repository\RoleRepository,
-	Mepatek\UserManager\Repository\UserActivityRepository,
-	Mepatek\UserManager\Entity\User,
-	Mepatek\UserManager\Entity\Role,
-	Mepatek\UserManager\Entity\UserActivity;
+	Adldap\Connections\Configuration;
+
+use Kdyby\Doctrine\EntityManager;
+use App\Mepatek\UserManager\Entity\User;
+use App\Mepatek\UserManager\Entity\Role;
+use App\Mepatek\UserManager\Entity\UserActivity;
 
 class AdLdapAuthDriver implements IAuthDriver
 {
@@ -27,12 +26,8 @@ class AdLdapAuthDriver implements IAuthDriver
 	/** @var array group=>role mapping */
 	protected $group2Role;
 
-	/** @var UserRepository */
-	protected $userRepository;
-	/** @var RoleRepository */
-	protected $roleRepository;
-	/** @var UserActivityRepository */
-	protected $userActivityRepository;
+	/** @var EntityManager */
+	protected $em;
 
 	/**
 	 * AdLdapAuthDriver constructor.
@@ -61,25 +56,21 @@ class AdLdapAuthDriver implements IAuthDriver
 	/**
 	 * Set Up event
 	 *
-	 * @param UserRepository         $userRepository
-	 * @param RoleRepository         $roleRepository
-	 * @param UserActivityRepository $userActivityRepository
+	 * @param EntityManager $em
 	 */
-	public function setUp(UserRepository $userRepository, RoleRepository $roleRepository, UserActivityRepository $userActivityRepository)
+	public function setUp(EntityManager $em)
 	{
-		$this->userRepository = $userRepository;
-		$this->roleRepository = $roleRepository;
-		$this->userActivityRepository = $userActivityRepository;
+		$this->em = $em;
 	}
 
 	/**
-	 * @param string    $username
-	 * @param string    $password
-	 * @param null|User $user
+	 * @param string $username
+	 * @param string $password
+	 * @param User   $user
 	 *
 	 * @return boolean
 	 */
-	public function authenticate($username, $password, &$user)
+	public function authenticate($username, $password, User $user)
 	{
 		if ($this->ad === null) {
 			$this->ad = new Adldap($this->adConfig);
@@ -140,21 +131,26 @@ class AdLdapAuthDriver implements IAuthDriver
 	{
 		$user = new User();
 
-		$user->fullName = $adUser->getDisplayName();
-		$user->userName = $adUser->getAccountName();
-		$user->email = $adUser->getEmail();
-		$user->phone = $adUser->getTelephoneNumber();
-		$user->title = $adUser->getTitle();
-		$user->thumbnail = $adUser->getThumbnailEncoded();
+		$user->setFullName($adUser->getDisplayName());
+		$user->setUserName($adUser->getAccountName());
+		$user->setEmail($adUser->getEmail());
+		$user->setPhone($adUser->getTelephoneNumber());
+		$user->setTitle($adUser->getTitle());
+		$user->setThumbnail($adUser->getThumbnailEncoded());
 
 		// save user
-		if ($this->userRepository->save($user)) {
+		try {
+			$this->em->persist($user);
+
 			$userActivity = new UserActivity();
-			$userActivity->userId = $user->id;
-			$userActivity->type = "createFromAuthDriver";
-			$userActivity->description = "Auto create from " . $this->getName();
-			$this->userActivityRepository->save($userActivity);
-		} else {
+			$userActivity->setUser($user);
+			$userActivity->setType("createFromAuthDriver");
+			$userActivity->setDescription("Auto create from " . $this->getName());
+			$this->em->persist($userActivity);
+
+			$this->em->flush();
+
+		} catch (\Exception $e) {
 			$user = null;
 		}
 
@@ -167,7 +163,7 @@ class AdLdapAuthDriver implements IAuthDriver
 	 * @param User        $user
 	 * @param Models\User $adUser
 	 */
-	protected function updateRole(User &$user, Models\User $adUser)
+	protected function updateRole(User $user, Models\User $adUser)
 	{
 		$memberOf = $adUser->getGroupNames();
 		foreach ($this->group2Role as $group => $role) {
@@ -190,13 +186,12 @@ class AdLdapAuthDriver implements IAuthDriver
 	 */
 	protected function roleExists($roleId)
 	{
-		$role = $this->roleRepository->find($roleId);
+		$role = $this->em->find(Role::class, $roleId);
 		if (!$role and $this->autoCreateRole) {
 			$role = new Role();
-			$role->role = $roleId;
-			if (!$this->roleRepository->save($role)) {
-				$role = null;
-			}
+			$role->setRole($roleId);
+			$this->em->persist($role);
+			$this->em->flush();
 		}
 		return $role ? true : false;
 	}

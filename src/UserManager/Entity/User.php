@@ -39,6 +39,11 @@ class User
 	 */
 	protected $userName;
 	/**
+	 * @ORM\Column(type="string", length=200, name="PwHash")
+	 * @var string
+	 */
+	protected $pwHash;
+	/**
 	 * @ORM\Column(type="string", length=255, name="Email")
 	 * @var string
 	 */
@@ -65,6 +70,16 @@ class User
 	 */
 	protected $thumbnail;
 	/**
+	 * @ORM\Column(type="string", length=255, name="PwToken", nullable=true)
+	 * @var string
+	 */
+	protected $pwToken;
+	/**
+	 * @ORM\Column(type="datetime", name="PwTokenExpire", nullable=true)
+	 * @var \DateTime
+	 */
+	protected $pwTokenExpire;
+	/**
 	 * @ORM\Column(type="datetime", name="Created", nullable=true)
 	 * @var \DateTime
 	 */
@@ -87,8 +102,8 @@ class User
 	/**
 	 * @ORM\ManyToMany(targetEntity="Role")
 	 * @ORM\JoinTable(name="UsersRoles",
-	 *      joinColumns={@JoinColumn(name="UserID", referencedColumnName="ZserID")},
-	 *      inverseJoinColumns={@JoinColumn(name="Role", referencedColumnName="Role")}
+	 *      joinColumns={@ORM\JoinColumn(name="UserID", referencedColumnName="UserID")},
+	 *      inverseJoinColumns={@ORM\JoinColumn(name="Role", referencedColumnName="Role")}
 	 *      )
 	 * @var Role[]
 	 */
@@ -238,6 +253,37 @@ class User
 	}
 
 	/**
+	 * @param string $newPwHash
+	 */
+	public function changePassword($newPwHash)
+	{
+		$this->pwHash = $newPwHash;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getPwHash()
+	{
+		return $this->pwHash;
+	}
+
+
+	/**
+	 * @param \DateInterval $interval
+	 * @return string
+	 */
+	public function resetPwToken(\DateInterval $interval)
+	{
+		$dateTokenExpire = new \DateTime();
+		$dateTokenExpire->add($interval);
+
+		$this->pwToken = md5(md5(uniqid(rand(), true)));
+		$this->pwTokenExpire = $dateTokenExpire;
+		return $this->pwToken;
+	}
+
+	/**
 	 * @return \DateTime
 	 */
 	public function getCreated()
@@ -347,6 +393,33 @@ class User
 	public function setAuthMethod($authMethod)
 	{
 		$this->authMethod = $authMethod;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getIdentityRoles()
+	{
+		$roles = [];
+		foreach ($this->roles as $role) {
+			$roles[] = $role->getRole();
+		}
+		return $roles;
+	}
+
+
+	const PROPERTIES_FOR_IDENTITY = "fullName,userName,email,phone,title,language,thumbnail";
+
+	/**
+	 * @return array
+	 */
+	public function getIdentityData()
+	{
+		$identityData = [];
+		foreach (explode(",", self::PROPERTIES_FOR_IDENTITY) as $property) {
+			$identityData[$property] = $this->$property;
+		}
+		return $identityData;
 	}
 
 }
