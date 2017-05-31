@@ -1,1 +1,7 @@
-{control userEditForm}
+<div class="user_edit">
+	{control userEditForm}
+</div>
+<div class="user_thumbnail">
+	<img n:if="$user" src="{$user->getThumbnail()|datastream}"/>
+	{control userThumbnailForm}
+</div>

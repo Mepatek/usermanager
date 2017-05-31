@@ -42,7 +42,7 @@ class User
 	 * @ORM\Column(type="string", length=200, name="PwHash")
 	 * @var string
 	 */
-	protected $pwHash;
+	protected $pwHash = "";
 	/**
 	 * @ORM\Column(type="string", length=255, name="Email")
 	 * @var string
@@ -122,6 +122,7 @@ class User
 	public function __construct() {
 		$this->roles = new ArrayCollection();
 		$this->authDrivers = new ArrayCollection();
+		$this->created = new \DateTime();
 	}
 
 	/**

@@ -6,15 +6,12 @@ namespace Mepatek\UserManager\UI\Users;
 use App\Mepatek\UserManager\Entity\User;
 use Kdyby\Doctrine\EntityManager;
 use Mepatek\Components\UI\GridFactory;
-use Nette\Application\UI\Control;
 use Ublaboo\DataGrid\DataGrid;
-use Ublaboo\DataGrid\DataSource\DoctrineDataSource;
 
-class UsersListControl extends Control
+
+class UsersListControl extends UserControl
 {
 
-	/** @var EntityManager */
-	private $em;
 	/** @var GridFactory */
 	private $gridFactory;
 	/** @var string */
@@ -26,6 +23,8 @@ class UsersListControl extends Control
 	private $permittedDelete = true;
 	/** @var boolean */
 	private $permittedLockUnlock = true;
+
+
 
 	/**
 	 * UsersListControl constructor.
@@ -80,23 +79,23 @@ class UsersListControl extends Control
 
 		$grid->setColumnsHideable();
 
-		$grid->addColumnText("userName", "User name")
+		$grid->addColumnText("userName", "usermanager.user_name")
 			->setDefaultHide();
-		$grid->addColumnText("fullName", "Full name");
-		$grid->addColumnText("title", "Title");
-		$grid->addColumnText("email", "E-mail");
-		$grid->addColumnText("phone", "Phone")
+		$grid->addColumnText("fullName", "usermanager.user_full_name");
+		$grid->addColumnText("title", "usermanager.user_title");
+		$grid->addColumnText("email", "usermanager.user_email");
+		$grid->addColumnText("phone", "usermanager.user_phone")
 			->setDefaultHide();
-		$grid->addColumnDateTime("created", "Created")
+		$grid->addColumnDateTime("created", "usermanager.user_created")
 			->setDefaultHide();
-		$grid->addColumnDateTime("lastLogged", "Last logged");
-		$grid->addColumnStatus("disabled", "Status")
+		$grid->addColumnDateTime("lastLogged", "usermanager.user_last_logged");
+		$grid->addColumnStatus("disabled", "usermanager.user_disabled_caption")
 			->setCaret(FALSE)
-			->addOption(1, 'Locked')
+			->addOption(1, 'usermanager.user_disabled')
 			->setIcon("lock")
 			->setClass("btn-warning")
 			->endOption()
-			->addOption(0, 'OK')
+			->addOption(0, 'usermanager.user_enabled')
 			->setIcon("unlock-alt")
 			->setClass("btn-success")
 			->endOption()
@@ -109,7 +108,7 @@ class UsersListControl extends Control
 
 		if ($this->linkEdit) {
 			$grid->addAction("userEdit", "")
-				->setTitle("Edit user")
+				->setTitle("usermanager.user_action_edit")
 				->setIcon("pencil");
 		}
 		if ($this->linkChangePassword) {
@@ -145,24 +144,7 @@ class UsersListControl extends Control
 	public function handleUserDelete($id)
 	{
 		$user = $this->findUserById($id);
-		$user->setDeleted(true);
-		$this->saveUser($user);
+		$this->deleteUser($user);
 	}
 
-	/**
-	 * @param $id
-	 *
-	 * @return User
-	 */
-	protected function findUserById($id)
-	{
-		return $this->em->find(User::class, $id);
-	}
-
-
-	protected function saveUser(User $user)
-	{
-		$this->em->persist($user);
-		$this->em->flush();
-	}
 }

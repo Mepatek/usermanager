@@ -3,17 +3,19 @@
 namespace Mepatek\UserManager\UI\Users;
 
 
+use App\Mepatek\UserManager\Entity\User;
 use Kdyby\Doctrine\EntityManager;
+use Mepatek\Components\International\LanguageHelper;
 use Mepatek\Components\UI\FormFactory;
-use Nette\Application\UI\Control;
+use Nette\Application\UI\Form;
 
-class UserEditControl extends Control
+class UserEditControl extends UserControl
 {
 
-	/** @var EntityManager */
-	private $em;
 	/** @var FormFactory */
 	private $formFactory;
+	/** @var LanguageHelper */
+	private $languageHelper;
 	/** @var string */
 	private $linkList;
 	/** @var string */
@@ -27,15 +29,23 @@ class UserEditControl extends Control
 	/**
 	 * UserEditControl constructor.
 	 *
-	 * @param EntityManager $em
-	 * @param FormFactory   $formFactory
-	 * @param string        $linkEdit
-	 * @param string        $linkChangePassword
+	 * @param EntityManager  $em
+	 * @param FormFactory    $formFactory
+	 * @param LanguageHelper $languageHelper
+	 * @param string         $linkList
+	 * @param string         $linkChangePassword
 	 */
-	public function __construct(EntityManager $em, FormFactory $formFactory, $linkList, $linkChangePassword)
+	public function __construct(
+		EntityManager $em,
+		FormFactory $formFactory,
+		LanguageHelper $languageHelper,
+		$linkList,
+		$linkChangePassword
+	)
 	{
 		$this->em = $em;
 		$this->formFactory = $formFactory;
+		$this->languageHelper = $languageHelper;
 		$this->linkList = $linkList;
 		$this->linkChangePassword = $linkChangePassword;
 		parent::__construct();
@@ -49,7 +59,8 @@ class UserEditControl extends Control
 //			$template->setTranslator($this->parent->translator);
 //		}
 
-
+		$id = $this->getPresenter()->getParameter("id");
+		$template->user = $this->findUserById($id);
 		$template->render(__DIR__ . '/' . substr(__CLASS__, strrpos(__CLASS__, '\\') + 1) . '.latte');
 
 
@@ -59,119 +70,120 @@ class UserEditControl extends Control
 	/**
 	 * @param $name
 	 *
-	 * @return
+	 * @return \Mepatek\Components\FormBootstrap
 	 */
 	public function createComponentUserEditForm($name)
 	{
-		$grid = new DataGrid($this, $name);
-		$qb = $this->em->getRepository(User::class)
-			->createQueryBuilder("user")
-			->select("user")
-			->where("user.deleted = 0");
-		$data = new DoctrineDataSource($qb, "id");
-		$grid->setDataSource($data);
+		$id = $this->getPresenter()->getParameter("id");
+		$user = $this->findUserById($id);
 
-		$grid->setColumnsHideable();
+		$form = $this->formFactory->createBootstrap();
 
-		$grid->addColumnText("userName", "User name")
-			->setDefaultHide();
-		$grid->addColumnText("fullName", "Full name");
-		$grid->addColumnText("title", "Title");
-		$grid->addColumnText("email", "E-mail");
-		$grid->addColumnText("phone", "Phone")
-			->setDefaultHide();
-		$grid->addColumnDateTime("created", "Created")
-			->setDefaultHide();
-		$grid->addColumnDateTime("lastLogged", "Last logged");
-		$grid->addColumnStatus("disabled", "Disabled");
+		$form->addHidden("id");
 
-		if ($this->linkEdit) {
-			$grid->addAction("userEdit", "")
-				->setTitle("Edit user")
-				->setIcon("pencil");
-		}
-		if ($this->linkChangePassword) {
-			$grid->addAction("userChangePassword", "")
-				->setTitle("Change password")
-				->setIcon("user-secret");
-		}
-		$grid->addAction("userDisable", "")
-			->setTitle("Disable user")
-			->setIcon("lock");
-		$grid->addAction("userEnable", "")
-			->setTitle("Enable user")
-			->setIcon("unlock-alt");
-		if ($this->permittedDelete) {
-			$grid->addAction("userDelete", "")
-				->setConfirm(
-					function ($item) {
-						return "Are you sure to delete user " . $item->getFullName() . "?";
-					}
+		$form->addText("userName", "usermanager.user_name")
+			->setRequired(true);
+		$form->addText("fullName", "usermanager.user_full_name")
+			->setRequired(true);
+		$form->addText("title", "usermanager.user_title");
+		$form->addText("email", "usermanager.user_email")
+			->setRequired(true)
+			->addRule(Form::EMAIL);
+		$form->addText("phone", "usermanager.user_phone");
+		$form->addSelect("language", "usermanager.user_language")
+			->setPrompt("usermanager.user_select_language")
+			->setItems(
+				$this->languageHelper->getSelectItems(
+					$user ? $user->getLanguage() : null
 				)
-				->setTitle("Delete user")
-				->setIcon("trash");
+			);
+		if ($this->permittedLockUnlock) {
+			$form->addSelect("disabled", "usermanager.user_disabled_caption")
+				->setItems(
+					[
+						0 => "usermanager.user_enabled",
+						1 => "usermanager.user_disabled",
+					]
+				);
+		}
+		// usermanager.user_created
+		// usermanager.user_last_logged
+
+		$form->addSubmit("send", "usermanager.user_save");
+		$form->addSubmit("delete", "usermanager.user_delete");
+		if ($user) {
+//			if (!$user->isDeleted()) {
+//				$form->addSubmit("send", "usermanager.user_save");
+//				if ($user->isDisabled()) {
+//					$form->addSubmit("enable", "usermanager.user_enable");
+//				} else {
+//					$form->addSubmit("disable", "usermanager.user_disable");
+//				}
+//				$form->addSubmit("delete", "usermanager.user_delete");
+//			}
+
+			$form->setDefaults(
+				[
+					"id"       => $user->getId(),
+					"userName" => $user->getUserName(),
+					"fullName" => $user->getFullName(),
+					"title"    => $user->getTitle(),
+					"email"    => $user->getEmail(),
+					"phone"    => $user->getPhone(),
+					"language" => $user->getLanguage(),
+					"disabled" => $user->isDisabled() ? 1 : 0,
+				]
+			);
+
+		} else {
+//			$form->addSubmit("send", "usermanager.user_save");
 		}
 
-		$grid->allowRowsAction(
-			'userDisable', function ($item) {
-			return !$item->isDisabled();
-		}
-		);
-		$grid->allowRowsAction(
-			'userEnable', function ($item) {
-			return $item->isDisabled();
-		}
-		);
+		$form->onSuccess[] = function (Form $form, $values) {
+			$id = $values->id;
 
-		return $grid;
+			switch ($form->isSubmitted()->getName()) {
+				// save
+				case "save":
+					if ($id) {
+						$user = $this->findUserById($id);
+					} else {
+						$user = new User();
+					}
+					$user->setUserName($values->userName);
+					$user->setFullName($values->fullName);
+					$user->setTitle($values->title);
+					$user->setEmail($values->email);
+					$user->setPhone($values->phone);
+					$user->setLanguage($values->language);
+					$this->saveUser($user);
+
+					break;
+				case "delete":
+					// delete
+					$user = $this->findUserById($id);
+					$user->setDeleted(true);
+					$this->saveUser($user);
+					break;
+			}
+
+			if ($id) {
+				$this->presenter->redirect("this", ["id" => $id]);
+			}
+		};
+
+		return $form;
 
 	}
 
-	public function handleUserEdit($id)
+
+	public function createComponentUserThumbnailForm()
 	{
-		$this->getPresenter()->redirect($this->linkEdit, ["id" => $id]);
+		$form = $this->formFactory->create();
+		$form->addMultiUpload("thumbnail", "usermanager.user_thumbnail");
+		$form->addSubmit("upload", "Upload");
+		return $form;
 	}
 
-	public function handleUserChangePassword($id)
-	{
-		$this->getPresenter()->redirect($this->linkChangePassword, ["id" => $id]);
-	}
-
-	public function handleUserDelete($id)
-	{
-		$user = $this->findUserById($id);
-		$user->setDeleted(true);
-		$this->saveUser($user);
-	}
-
-	public function handleUserDisable($id)
-	{
-		$user = $this->findUserById($id);
-		$user->setDisabled(true);
-		$this->saveUser($user);
-	}
-
-	public function handleUserEnable($id)
-	{
-		$user = $this->findUserById($id);
-		$user->setDisabled(false);
-		$this->saveUser($user);
-	}
-
-	/**
-	 * @param $id
-	 *
-	 * @return User
-	 */
-	protected function findUserById($id)
-	{
-		return $this->em->find(User::class, $id);
-	}
-
-
-	protected function saveUser(User $user)
-	{
-		$this->em->persist($user);
-		$this->em->flush();
-	}
 }
+
