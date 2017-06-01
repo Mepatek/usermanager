@@ -25,7 +25,6 @@ class UsersListControl extends UserControl
 	private $permittedLockUnlock = true;
 
 
-
 	/**
 	 * UsersListControl constructor.
 	 *
@@ -46,6 +45,9 @@ class UsersListControl extends UserControl
 	public function render()
 	{
 		$template = $this->getTemplate();
+		if (isset($this->parent->translator)) {
+			$template->setTranslator($this->parent->translator);
+		}
 
 //		if (isset($this->parent->translator)) {
 //			$template->setTranslator($this->parent->translator);
@@ -81,16 +83,19 @@ class UsersListControl extends UserControl
 
 		$grid->addColumnText("userName", "usermanager.user_name")
 			->setDefaultHide();
-		$grid->addColumnText("fullName", "usermanager.user_full_name");
+		$grid->addColumnText("fullName", "usermanager.user_full_name")
+			->setFilterText();
 		$grid->addColumnText("title", "usermanager.user_title");
-		$grid->addColumnText("email", "usermanager.user_email");
+		$grid->addColumnText("email", "usermanager.user_email")
+			->setFilterText();
 		$grid->addColumnText("phone", "usermanager.user_phone")
 			->setDefaultHide();
 		$grid->addColumnDateTime("created", "usermanager.user_created")
 			->setDefaultHide();
-		$grid->addColumnDateTime("lastLogged", "usermanager.user_last_logged");
+		$grid->addColumnDateTime("lastLogged", "usermanager.user_last_logged")
+			->setFormat("d.m.Y H:m:s");
 		$grid->addColumnStatus("disabled", "usermanager.user_disabled_caption")
-			->setCaret(FALSE)
+			->setCaret(false)
 			->addOption(1, 'usermanager.user_disabled')
 			->setIcon("lock")
 			->setClass("btn-warning")

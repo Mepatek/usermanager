@@ -8,6 +8,7 @@ use Kdyby\Doctrine\EntityManager;
 use Mepatek\Components\International\LanguageHelper;
 use Mepatek\Components\UI\FormFactory;
 use Mepatek\Components\UI\GridFactory;
+use Mepatek\UserManager\UI\Users\UserChangePasswordControl;
 use Mepatek\UserManager\UI\Users\UserEditControl;
 use Mepatek\UserManager\UI\Users\UsersListControl;
 use Nette\SmartObject;
@@ -42,6 +43,10 @@ class UsermanagerFormsFactory
 	public $onBeforeUserDelete = [];
 	/** @var array  */
 	public $onAfterUserDelete = [];
+	/** @var array  */
+	public $onBeforeUserChangePassword = [];
+	/** @var array  */
+	public $onAfterUserChangePassword = [];
 
 
 	/**
@@ -70,17 +75,17 @@ class UsermanagerFormsFactory
 	 */
 	public function createUsersList()
 	{
-		$userList = new UsersListControl(
+		$usersListControl = new UsersListControl(
 			$this->em,
 			$this->gridFactory,
 			$this->linkUserEdit,
 			$this->linkUserChangePassword
 		);
-		$userList->onBeforeUserSave = $this->onBeforeUserSave;
-		$userList->onAfterUserSave = $this->onAfterUserSave;
-		$userList->onBeforeUserDelete = $this->onBeforeUserDelete;
-		$userList->onAfterUserDelete = $this->onAfterUserDelete;
-		return $userList;
+		$usersListControl->onBeforeUserSave = $this->onBeforeUserSave;
+		$usersListControl->onAfterUserSave = $this->onAfterUserSave;
+		$usersListControl->onBeforeUserDelete = $this->onBeforeUserDelete;
+		$usersListControl->onAfterUserDelete = $this->onAfterUserDelete;
+		return $usersListControl;
 	}
 
 
@@ -89,18 +94,33 @@ class UsermanagerFormsFactory
 	 */
 	public function createUserEdit()
 	{
-		$userList = new UserEditControl(
+		$userEditControl = new UserEditControl(
 			$this->em,
 			$this->formFactory,
 			$this->languageHelper,
 			$this->linkUsersList,
 			$this->linkUserChangePassword
 		);
-		$userList->onBeforeUserSave = $this->onBeforeUserSave;
-		$userList->onAfterUserSave = $this->onAfterUserSave;
-		$userList->onBeforeUserDelete = $this->onBeforeUserDelete;
-		$userList->onAfterUserDelete = $this->onAfterUserDelete;
-		return $userList;
+		$userEditControl->onBeforeUserSave = $this->onBeforeUserSave;
+		$userEditControl->onAfterUserSave = $this->onAfterUserSave;
+		$userEditControl->onBeforeUserDelete = $this->onBeforeUserDelete;
+		$userEditControl->onAfterUserDelete = $this->onAfterUserDelete;
+		return $userEditControl;
+	}
+
+
+	public function createUserChangePassword()
+	{
+		$userEditControl = new UserChangePasswordControl(
+			$this->em,
+			$this->formFactory,
+			$this->languageHelper,
+			$this->linkUsersList,
+			$this->linkUserChangePassword
+		);
+		$userEditControl->onBeforeUserChangePassword = $this->onBeforeUserChangePassword;
+		$userEditControl->onAfterUserChangePassword = $this->onAfterUserChangePassword;
+		return $userEditControl;
 	}
 
 	/**

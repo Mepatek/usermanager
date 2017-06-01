@@ -4,6 +4,7 @@ namespace App\Mepatek\UserManager\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Nette\Utils\Strings;
 
 
 /**
@@ -64,7 +65,7 @@ class User
 	 */
 	protected $language;
 	/**
-	 * @ORM\Column(type="text", name="Thumbnail", nullable=true)
+	 * @ORM\Column(type="blob", name="Thumbnail", nullable=true)
 	 * encoded image for atribute src
 	 * @var string
 	 */
@@ -242,6 +243,10 @@ class User
 	 */
 	public function getThumbnail()
 	{
+//		bdump($this->thumbnail);
+		if (is_resource($this->thumbnail)) {
+			return stream_get_contents($this->thumbnail);
+		}
 		return $this->thumbnail;
 	}
 
@@ -251,6 +256,14 @@ class User
 	public function setThumbnail($thumbnail)
 	{
 		$this->thumbnail = $thumbnail;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function hasThumbnail()
+	{
+		return (boolean)$this->thumbnail;
 	}
 
 	/**
@@ -418,7 +431,8 @@ class User
 	{
 		$identityData = [];
 		foreach (explode(",", self::PROPERTIES_FOR_IDENTITY) as $property) {
-			$identityData[$property] = $this->$property;
+			$getter = "get" . Strings::firstUpper($property);
+			$identityData[$property] = $this->$getter();
 		}
 		return $identityData;
 	}

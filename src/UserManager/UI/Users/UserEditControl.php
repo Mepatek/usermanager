@@ -8,6 +8,7 @@ use Kdyby\Doctrine\EntityManager;
 use Mepatek\Components\International\LanguageHelper;
 use Mepatek\Components\UI\FormFactory;
 use Nette\Application\UI\Form;
+use Nette\Http\FileUpload;
 
 class UserEditControl extends UserControl
 {
@@ -55,9 +56,9 @@ class UserEditControl extends UserControl
 	{
 		$template = $this->getTemplate();
 
-//		if (isset($this->parent->translator)) {
-//			$template->setTranslator($this->parent->translator);
-//		}
+		if (isset($this->parent->translator)) {
+			$template->setTranslator($this->parent->translator);
+		}
 
 		$id = $this->getPresenter()->getParameter("id");
 		$template->user = $this->findUserById($id);
@@ -144,7 +145,7 @@ class UserEditControl extends UserControl
 
 			switch ($form->isSubmitted()->getName()) {
 				// save
-				case "save":
+				case "send":
 					if ($id) {
 						$user = $this->findUserById($id);
 					} else {
@@ -162,8 +163,7 @@ class UserEditControl extends UserControl
 				case "delete":
 					// delete
 					$user = $this->findUserById($id);
-					$user->setDeleted(true);
-					$this->saveUser($user);
+					$this->deleteUser($user);
 					break;
 			}
 
@@ -176,13 +176,46 @@ class UserEditControl extends UserControl
 
 	}
 
-
+	/**
+	 * @return \Mepatek\Components\Form
+	 */
 	public function createComponentUserThumbnailForm()
 	{
 		$form = $this->formFactory->create();
-		$form->addMultiUpload("thumbnail", "usermanager.user_thumbnail");
-		$form->addSubmit("upload", "Upload");
+
+		$id = $this->getPresenter()->getParameter("id");
+
+		$form->addHidden("id", $id);
+
+		$form->addUpload("thumbnail", "usermanager.user_thumbnail");
+		$form->addSubmit("upload", "usermanager.user_upload_thumbnail");
+
+		$form->onSuccess[] = function (Form $form, $values) {
+			$thumbnail = $values->thumbnail;
+			bdump($thumbnail);
+			if ($thumbnail->isOk()) {
+				if (!$thumbnail->isImage()) {
+					throw new \Exception("Not image!");
+				}
+				$image = $thumbnail->toImage();
+				$user = $this->findUserById($values->id);
+				$user->setThumbnail((string)$image);
+				$this->saveUser($user, false);
+//				$this->flashMessage("");
+			}
+		};
 		return $form;
+	}
+
+
+	/*
+	 *
+	 */
+	public function handleRemoveThumbnail($id)
+	{
+		$user = $this->findUserById($id);
+		$user->setThumbnail(null);
+		$this->saveUser($user, false);
 	}
 
 }

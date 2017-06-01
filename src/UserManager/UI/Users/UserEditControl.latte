@@ -1,7 +1,41 @@
 <div class="user_edit">
 	{control userEditForm}
 </div>
-<div class="user_thumbnail">
-	<img n:if="$user" src="{$user->getThumbnail()|datastream}"/>
-	{control userThumbnailForm}
+<div class="user_thumbnail" n:if="$user">
+	{form userThumbnailForm}
+
+		<div class="row">
+			<div class="col-md-offset-2 col-md-9">
+
+				<div n:class="($user->hasThumbnail()) ? fileinput-exists : fileinput-new, fileinput" data-provides="fileinput">
+					<div class="fileinput-new thumbnail">
+						<img src="" alt="thumbnail">
+
+					</div>
+					<div class="fileinput-preview fileinput-exists thumbnail">
+
+						<img n:if="$user->hasThumbnail()" src="{$user->getThumbnail()|datastream}" />
+					</div>
+					<div>
+						<span class="btn btn-default btn-file">
+							<span class="fileinput-new">
+								{_}usermanager.user_select_thumbnail{/_}
+							</span>
+							<span class="fileinput-exists">
+								{_}usermanager.user_change_thumbnail{/_}
+							</span>
+							<input type="file" n:name="thumbnail">
+						</span>
+						<a n:href="removeThumbnail!, id=>$user->getId()" n:if="$user->hasThumbnail()"  class="btn btn-default fileinput-exists" >
+							{_}usermanager.user_remove_thumbnail{/_}
+						</a>
+						<input n:name="upload" class="btn btn-primary button fileinput-exists" type="submit">
+						<i n:if="$user->hasThumbnail()" class="glyphicon glyphicon-ok fileinput-exists"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+	{/form}
 </div>

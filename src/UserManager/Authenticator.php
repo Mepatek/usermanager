@@ -172,6 +172,26 @@ class Authenticator implements IAuthenticator
 		}
 	}
 
+	/**
+	 * Change password for user with id
+	 *
+	 * @param integer $id
+	 * @param string  $newPassword
+	 *;
+	 *
+	 * @return boolean
+	 */
+	public function changePassword($id, $newPassword)
+	{
+		$user = $this->em->find(User::class, $id);
+		if ($user) {
+			$user->changePassword(Passwords::hash($newPassword));
+			$this->em->flush();
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	/**
 	 * Check password length and check password complexity

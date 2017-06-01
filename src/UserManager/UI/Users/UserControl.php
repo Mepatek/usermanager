@@ -6,24 +6,29 @@ namespace Mepatek\UserManager\UI\Users;
 use App\Mepatek\UserManager\Entity\User;
 use Kdyby\Doctrine\EntityManager;
 use Nette\Application\UI\Control;
-use Nette\SmartObject;
+use Nette\Localization\ITranslator;
 
 abstract class UserControl extends Control
 {
 
-	use SmartObject;
-
 	/** @var EntityManager */
 	protected $em;
 
+	/** @var ITranslator */
+	protected $translator;
+
 	/** @var array */
 	public $onBeforeUserSave = [];
-	/** @var array  */
+	/** @var array */
 	public $onAfterUserSave = [];
-	/** @var array  */
+	/** @var array */
 	public $onBeforeUserDelete = [];
-	/** @var array  */
+	/** @var array */
 	public $onAfterUserDelete = [];
+	/** @var array  */
+	public $onBeforeUserChangePassword = [];
+	/** @var array  */
+	public $onAfterUserChangePassword = [];
 
 	/**
 	 * Find user by ID
@@ -43,13 +48,18 @@ abstract class UserControl extends Control
 	 * Save user
 	 *
 	 * @param User $user
+	 * @param bool $runEvents
 	 */
-	protected function saveUser(User $user)
+	protected function saveUser(User $user, $runEvents = true)
 	{
-		$this->onBeforeUserSave($user);
+		if ($runEvents) {
+			$this->onBeforeUserSave($user);
+		}
 		$this->em->persist($user);
 		$this->em->flush();
-		$this->onAfterUserSave($user);
+		if ($runEvents) {
+			$this->onAfterUserSave($user);
+		}
 	}
 
 	/**
