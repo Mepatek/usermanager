@@ -3,6 +3,9 @@
 namespace Mepatek\UserManager;
 
 
+use App\Mepatek\UserManager\Entity\Acl;
+use App\Mepatek\UserManager\Entity\Role;
+use Kdyby\Doctrine\EntityManager;
 use Mepatek\UserManager\Repository\AclRepository;
 use Mepatek\UserManager\Repository\ResourceRepository;
 use Mepatek\UserManager\Repository\RoleRepository;
@@ -21,13 +24,19 @@ class Authorizator extends Permission
 	 * Authorizator constructor.
 	 *
 	 * @param IStorage           $storage
-	 * @param RoleRepository     $roleRepository
+	 * @param EntityManager      $em
 	 * @param ResourceRepository $resourceRepository
 	 */
-	public function __construct(IStorage $storage, RoleRepository $roleRepository, ResourceRepository $resourceRepository, AclRepository $aclRepository)
+	public function __construct(IStorage $storage, EntityManager $em, ResourceRepository $resourceRepository)
 	{
 		// roles
-		$roles = $roleRepository->findBy(["NOT role" => ["admin", "guest", "authenticated"]]);
+		$qb = $em->getRepository(Role::class)
+			->createQueryBuilder("r");
+		$roles = $qb
+			->where($qb->expr()->notIn("r.role", ["admin", "guest", "authenticated"]))
+			->getQuery()
+			->getResult();
+
 
 		$this->addRole("guest");    // special role for not logged in users
 		$this->addRole("admin");    // special role for admin -> all privileges if not set in acl
@@ -35,7 +44,7 @@ class Authorizator extends Permission
 
 
 		foreach ($roles as $role) {
-			$this->addRole($role->role);
+			$this->addRole($role->getRole());
 		}
 
 		// resources
@@ -47,14 +56,14 @@ class Authorizator extends Permission
 		}
 
 		// acl
-		$acls = $aclRepository->findBy([]);
+		$acls = $em->getRepository(Acl::class)->findAll();
 
 		$adminSet = false;
 		foreach ($acls as $acl) {
-			if ($acl->role == "admin") {
+			if ($acl->getRole() == "admin") {
 				$adminSet = true;
 			}
-			if ($acl->allow !== null) {
+			if ($acl->getAllow() !== null) {
 				$this->allow($acl->role, $acl->resource, $acl->getAllowArray());
 			}
 			if ($acl->deny !== null) {

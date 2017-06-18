@@ -62,6 +62,7 @@ class UserEditControl extends UserControl
 
 		$id = $this->getPresenter()->getParameter("id");
 		$template->user = $this->findUserById($id);
+
 		$template->render(__DIR__ . '/' . substr(__CLASS__, strrpos(__CLASS__, '\\') + 1) . '.latte');
 
 
@@ -192,7 +193,6 @@ class UserEditControl extends UserControl
 
 		$form->onSuccess[] = function (Form $form, $values) {
 			$thumbnail = $values->thumbnail;
-			bdump($thumbnail);
 			if ($thumbnail->isOk()) {
 				if (!$thumbnail->isImage()) {
 					throw new \Exception("Not image!");

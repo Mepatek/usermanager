@@ -25,9 +25,9 @@ abstract class UserControl extends Control
 	public $onBeforeUserDelete = [];
 	/** @var array */
 	public $onAfterUserDelete = [];
-	/** @var array  */
+	/** @var array */
 	public $onBeforeUserChangePassword = [];
-	/** @var array  */
+	/** @var array */
 	public $onAfterUserChangePassword = [];
 
 	/**
@@ -39,7 +39,10 @@ abstract class UserControl extends Control
 	 */
 	protected function findUserById($id)
 	{
-		$user = $this->em->find(User::class, $id);
+		$user = null;
+		if ($id) {
+			$user = $this->em->find(User::class, $id);
+		}
 		return $user;
 	}
 

@@ -243,7 +243,6 @@ class User
 	 */
 	public function getThumbnail()
 	{
-//		bdump($this->thumbnail);
 		if (is_resource($this->thumbnail)) {
 			return stream_get_contents($this->thumbnail);
 		}

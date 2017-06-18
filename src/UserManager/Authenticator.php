@@ -86,7 +86,6 @@ class Authenticator implements IAuthenticator
 		$this->em->persist($userActivity);
 		$this->em->flush();
 
-		bdump($user);
 		return new Identity($user->getId(), $user->getIdentityRoles(), $user->getIdentityData());
 	}
 

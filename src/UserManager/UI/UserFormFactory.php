@@ -150,9 +150,9 @@ class UserFormFactory extends Object
 	public function loginFormSucceeded(Form $form, $values)
 	{
 		if ($values->remember) {
-			$this->user->setExpiration('14 days', false);
+			$this->user->setExpiration('7 days', false);
 		} else {
-			$this->user->setExpiration('20 minutes', true);
+			$this->user->setExpiration('60 minutes', true);
 		}
 
 		try {
