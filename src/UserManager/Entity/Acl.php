@@ -35,15 +35,15 @@ class Acl
 	 */
 	protected $resource;
 	/**
-	 * @ORM\Column(type="string", length=255, name="[Allow]", nullable=true)
+	 * @ORM\Column(type="string", length=255, name="Allowed", nullable=true)
 	 * @var array|null
 	 */
-	protected $allow = null;
+	protected $allowed = null;
 	/**
-	 * @ORM\Column(type="string", length=255, name="[Deny]", nullable=true)
+	 * @ORM\Column(type="string", length=255, name="Denied", nullable=true)
 	 * @var array|null
 	 */
-	protected $deny = null;
+	protected $denied = null;
 
 	/**
 	 * @return int
@@ -97,9 +97,9 @@ class Acl
 	/**
 	 * @return string|null
 	 */
-	public function getAllow()
+	public function getAllowed()
 	{
-		return is_array($this->allow) ? join(",", $this->allow) : $this->allow;
+		return is_array($this->allowed) ? join(",", $this->allowed) : $this->allowed;
 	}
 
 	/**
@@ -107,30 +107,30 @@ class Acl
 	 */
 	public function getAllowArray()
 	{
-		return $this->allow;
+		return $this->allowed;
 	}
 
 	/**
-	 * @param array|string|null $allow
+	 * @param array|string|null $allowed
 	 */
-	public function setAllow($allow)
+	public function setAllowed($allowed)
 	{
-		if (is_string($allow)) {
-			$allow = explode(",", $allow);
+		if (is_string($allowed)) {
+			$allowed = explode(",", $allowed);
 		}
-		if (is_array($allow) and count($allow) > 0) {
-			$this->allow = $allow;
+		if (is_array($allowed) and count($allowed) > 0) {
+			$this->allowed = $allowed;
 		} else {
-			$this->allow = null;
+			$this->allowed = null;
 		}
 	}
 
 	/**
 	 * @return string|null
 	 */
-	public function getDeny()
+	public function getDenied()
 	{
-		return is_array($this->deny) ? join(",", $this->deny) : $this->deny;
+		return is_array($this->denied) ? join(",", $this->denied) : $this->denied;
 	}
 
 	/**
@@ -138,21 +138,21 @@ class Acl
 	 */
 	public function getDenyArray()
 	{
-		return $this->deny;
+		return $this->denied;
 	}
 
 	/**
-	 * @param array|string|null $deny
+	 * @param array|string|null $denied
 	 */
-	public function setDeny($deny)
+	public function setDenied($denied)
 	{
-		if (is_string($deny)) {
-			$deny = explode(",", $deny);
+		if (is_string($denied)) {
+			$denied = explode(",", $denied);
 		}
-		if (is_array($deny) and count($deny) > 0) {
-			$this->deny = $deny;
+		if (is_array($denied) and count($denied) > 0) {
+			$this->denied = $denied;
 		} else {
-			$this->deny = null;
+			$this->denied = null;
 		}
 	}
 

@@ -13,7 +13,7 @@ use Mepatek\UserManager\UI\Users\UserEditControl;
 use Mepatek\UserManager\UI\Users\UsersListControl;
 use Nette\SmartObject;
 
-class UsermanagerFormsFactory
+class UserManagerFormsFactory
 {
 
 	use SmartObject;
@@ -50,7 +50,7 @@ class UsermanagerFormsFactory
 
 
 	/**
-	 * UsermanagerFormsFactory constructor.
+	 * UserManagerFormsFactory constructor.
 	 *
 	 * @param EntityManager $em
 	 * @param GridFactory   $gridFactory

@@ -41,7 +41,7 @@
 
 								{*todo další odkazy*}
 								<li n:if="$user" n:foreach="$userLinks as $userLink">
-									<a href="{if $userLink->link}{$userLink->link}{else}javascript;{/if}"> {$userLink->description]}
+									<a href="{if $userLink->link}{$userLink->link}{else}javascript;{/if}"> {$userLink->description}
 										<span n:if="$userLink->counter"> {$userLink->counter} </span>
 									</a>
 								</li>
