@@ -117,10 +117,11 @@ class User
 	protected $authDrivers = [];
 
 	/** @var string */
-	protected $authMethod;
+	public $authMethod;
 
 
-	public function __construct() {
+	public function __construct()
+	{
 		$this->roles = new ArrayCollection();
 		$this->authDrivers = new ArrayCollection();
 		$this->created = new \DateTime();
@@ -284,6 +285,7 @@ class User
 
 	/**
 	 * @param \DateInterval $interval
+	 *
 	 * @return string
 	 */
 	public function resetPwToken(\DateInterval $interval)
@@ -406,6 +408,35 @@ class User
 	public function setAuthMethod($authMethod)
 	{
 		$this->authMethod = $authMethod;
+	}
+
+
+	/**
+	 * @param Role $role
+	 */
+	public function addRole(Role $role)
+	{
+		$this->roles[] = $role;
+	}
+
+	public function addAuthDriver($name, $sid)
+	{
+
+	}
+
+	/**
+	 * @param string $role
+	 *
+	 * @return bool
+	 */
+	public function isInRole($role)
+	{
+		foreach ($this->roles as $r) {
+			if ($r->getRole() == $role) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

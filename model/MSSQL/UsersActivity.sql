@@ -24,7 +24,7 @@ CREATE TABLE [UsersActivity]
 	[UserID] int NOT NULL,
 	[IP] varchar(50) NULL,
 	[ActivityType] varchar(30) NOT NULL,
-	[ActivityDateTime] datetime NOT NULL,
+	[ActivityDateTime] datetime2 NOT NULL,
 	[Description] text NULL
 )
 GO

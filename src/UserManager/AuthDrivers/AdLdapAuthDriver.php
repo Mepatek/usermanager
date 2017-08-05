@@ -70,7 +70,7 @@ class AdLdapAuthDriver implements IAuthDriver
 	 *
 	 * @return boolean
 	 */
-	public function authenticate($username, $password, User $user)
+	public function authenticate($username, $password, $user)
 	{
 		if ($this->ad === null) {
 			$this->ad = new Adldap($this->adConfig);

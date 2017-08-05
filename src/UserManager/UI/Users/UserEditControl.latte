@@ -1,41 +1,87 @@
 <div class="user_edit">
-	{control userEditForm}
-</div>
-<div class="user_thumbnail" n:if="$user">
-	{form userThumbnailForm}
+	<div class="profile">
+		<div class="tabbable-line tabbable-full-width">
+			<ul class="nav nav-tabs">
+				<li class="active">
+					<a href="#tab_1_ucet" data-toggle="tab"> Účet </a>
+				</li>
+				<li n:if="$user">
+					<a href="#tab_1_role" data-toggle="tab"> Role a oprávnění </a>
+				</li>
+				<li n:if="$user">
+					<a href="#tab_1_prihlaseni" data-toggle="tab"> Historie přihlášení </a>
+				</li>
+				{*todo další taby*}
+			</ul>
 
-		<div class="row">
-			<div class="col-md-offset-2 col-md-9">
+			<!--tab_1_ucet-->
+			<div class="tab-content">
+				<div class="tab-pane active" id="tab_1_ucet">
+					<div class="row">
+						<div class="col-md-3">
+							<ul n:if="$user" class="list-unstyled profile-nav">
+								<li>
+									{form userThumbnailForm}
+										<div class="slim"
+														{*data-service="async.php"*}
+														{*data-fetcher="fetch.php"*}
+												 data-default-input-name="upload"
+												 data-ratio="1:1"
+												 data-meta-user-id="{$user ? $user->getId() : null}"
+												 data-size="300,300"
+												 data-max-file-size="10"
+												 data-service="{link UploadThumbnail!}"
+												 style="width: 100%;min-height: 200px">
+											<img n:if="$user and $user->hasThumbnail()" src="{$user->getThumbnail()|datastream}" alt=""/>
+											<input type="file" n:name="upload" accept="image/jpeg, image/png, image/gif, .jpg">
+											{*n:name="$property"*}
+										</div>
+									{/form}
+								</li>
 
-				<div n:class="($user->hasThumbnail()) ? fileinput-exists : fileinput-new, fileinput" data-provides="fileinput">
-					<div class="fileinput-new thumbnail">
-						<img src="" alt="thumbnail">
+								{*todo další odkazy*}
+								<li n:if="$user" n:foreach="$userLinks as $userLink">
+									<a href="{if $userLink->link}{$userLink->link}{else}javascript;{/if}"> {$userLink->description]}
+										<span n:if="$userLink->counter"> {$userLink->counter} </span>
+									</a>
+								</li>
+							</ul>
+						</div>
 
-					</div>
-					<div class="fileinput-preview fileinput-exists thumbnail">
-
-						<img n:if="$user->hasThumbnail()" src="{$user->getThumbnail()|datastream}" />
-					</div>
-					<div>
-						<span class="btn btn-default btn-file">
-							<span class="fileinput-new">
-								{_}usermanager.user_select_thumbnail{/_}
-							</span>
-							<span class="fileinput-exists">
-								{_}usermanager.user_change_thumbnail{/_}
-							</span>
-							<input type="file" n:name="thumbnail">
-						</span>
-						<a n:href="removeThumbnail!, id=>$user->getId()" n:if="$user->hasThumbnail()"  class="btn btn-default fileinput-exists" >
-							{_}usermanager.user_remove_thumbnail{/_}
-						</a>
-						<input n:name="upload" class="btn btn-primary button fileinput-exists" type="submit">
-						<i n:if="$user->hasThumbnail()" class="glyphicon glyphicon-ok fileinput-exists"></i>
+						<div class="col-md-9">
+							<div class="row">
+								<div class="col-md-12 profile-info">
+									<h1 class="font-green sbold uppercase">{$user ? $user->getFullName() : 'Nový uživatel'}</h1>
+									{control userEditForm}
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
+
+				<!--tab_1_role-->
+				<div n:if="$user" class="tab-pane" id="tab_1_role">
+					{control userRoleForm}
+				</div>
+				<!--end tab-pane-->
+				<!--tab_1_prihlaseni-->
+				<div n:if="$user" class="tab-pane" id="tab_1_prihlaseni">
+					<div class="row">
+						<div class="col-md-4">
+
+						</div>
+						<div class="col-md-8">
+							{control loginHistory}
+						</div>
+					</div>
+				</div>
+				<!--end tab-pane-->
 			</div>
 		</div>
-
-
-	{/form}
+	</div>
 </div>
+
+
+
+
+

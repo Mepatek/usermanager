@@ -94,7 +94,7 @@ class UsersListControl extends UserControl
 			->setDefaultHide();
 		$grid->addColumnDateTime("lastLogged", "usermanager.user_last_logged")
 			->setFormat("d.m.Y H:m:s");
-		$grid->addColumnStatus("disabled", "usermanager.user_disabled_caption")
+		$disabledColumn = $grid->addColumnStatus("disabled", "usermanager.user_disabled_caption")
 			->setCaret(false)
 			->addOption(1, 'usermanager.user_disabled')
 			->setIcon("lock")
@@ -103,13 +103,20 @@ class UsersListControl extends UserControl
 			->addOption(0, 'usermanager.user_enabled')
 			->setIcon("unlock-alt")
 			->setClass("btn-success")
-			->endOption()
-			->onChange[] =
-			function ($id, $new_value) {
-				$user = $this->findUserById($id);
-				$user->setDisabled($new_value);
-				$this->saveUser($user);
-			};
+			->endOption();
+
+		if ($this->permittedLockUnlock) {
+			$disabledColumn->onChange[] =
+				function ($id, $new_value) {
+					$user = $this->findUserById($id);
+					$user->setDisabled($new_value);
+					$this->saveUser($user);
+					if ($this->presenter->isAjax()) {
+						$this->redrawControl('flashes');
+						$this["usersListGrid"]->redrawItem($id);
+					}
+				};
+		}
 
 		if ($this->linkEdit) {
 			$grid->addAction("userEdit", "")

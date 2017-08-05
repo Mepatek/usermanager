@@ -65,7 +65,7 @@ class UserActivity
 	/**
 	 * @return int
 	 */
-	public function getId(): int
+	public function getId()
 	{
 		return $this->id;
 	}
@@ -73,7 +73,7 @@ class UserActivity
 	/**
 	 * @param int $id
 	 */
-	public function setId(int $id)
+	public function setId($id)
 	{
 		$this->id = $id;
 	}
@@ -81,7 +81,7 @@ class UserActivity
 	/**
 	 * @return User
 	 */
-	public function getUser(): User
+	public function getUser()
 	{
 		return $this->user;
 	}
@@ -97,7 +97,7 @@ class UserActivity
 	/**
 	 * @return string
 	 */
-	public function getIp(): string
+	public function getIp()
 	{
 		return $this->ip;
 	}
@@ -105,7 +105,7 @@ class UserActivity
 	/**
 	 * @param string $ip
 	 */
-	public function setIp(string $ip)
+	public function setIp($ip)
 	{
 		$this->ip = $ip;
 	}
@@ -113,7 +113,7 @@ class UserActivity
 	/**
 	 * @return string
 	 */
-	public function getType(): string
+	public function getType()
 	{
 		return $this->type;
 	}
@@ -121,7 +121,7 @@ class UserActivity
 	/**
 	 * @param string $type
 	 */
-	public function setType(string $type)
+	public function setType($type)
 	{
 		$this->type = $type;
 	}
@@ -129,7 +129,7 @@ class UserActivity
 	/**
 	 * @return \DateTime
 	 */
-	public function getDatetime(): \DateTime
+	public function getDatetime()
 	{
 		return $this->datetime;
 	}
@@ -145,7 +145,7 @@ class UserActivity
 	/**
 	 * @return string
 	 */
-	public function getDescription(): string
+	public function getDescription()
 	{
 		return $this->description;
 	}
@@ -153,7 +153,7 @@ class UserActivity
 	/**
 	 * @param string $description
 	 */
-	public function setDescription(string $description)
+	public function setDescription($description)
 	{
 		$this->description = $description;
 	}

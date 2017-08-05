@@ -35,12 +35,12 @@ class Acl
 	 */
 	protected $resource;
 	/**
-	 * @ORM\Column(type="string", length=255, name="Allow", nullable=true)
+	 * @ORM\Column(type="string", length=255, name="[Allow]", nullable=true)
 	 * @var array|null
 	 */
 	protected $allow = null;
 	/**
-	 * @ORM\Column(type="string", length=255, name="Deny", nullable=true)
+	 * @ORM\Column(type="string", length=255, name="[Deny]", nullable=true)
 	 * @var array|null
 	 */
 	protected $deny = null;

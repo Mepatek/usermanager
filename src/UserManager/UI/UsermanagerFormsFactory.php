@@ -96,6 +96,7 @@ class UsermanagerFormsFactory
 	{
 		$userEditControl = new UserEditControl(
 			$this->em,
+			$this->gridFactory,
 			$this->formFactory,
 			$this->languageHelper,
 			$this->linkUsersList,

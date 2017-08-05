@@ -24,9 +24,9 @@ CREATE TABLE [Users]
 	[Language] varchar(50) NULL,
 	[Thumbnail] text NULL,
 	[PwToken] varchar(255) NULL,
-	[PwTokenExpire] datetime NULL,
-	[Created] datetime NULL,
-	[LastLogged] datetime NULL,
+	[PwTokenExpire] datetime2 NULL,
+	[Created] datetime2 NULL,
+	[LastLogged] datetime2 NULL,
 	[Disabled] tinyint NOT NULL DEFAULT 0,
 	[Deleted] tinyint NOT NULL DEFAULT 0
 )

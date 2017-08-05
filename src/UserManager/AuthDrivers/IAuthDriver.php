@@ -26,7 +26,7 @@ interface IAuthDriver
 	 *
 	 * @return boolean
 	 */
-	public function authenticate($username, $password, User $user);
+	public function authenticate($username, $password, $user);
 
 	/**
 	 * Get auth driver name (max 30char)
