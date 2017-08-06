@@ -86,14 +86,11 @@ class RolesListControl extends RoleControl
 		}
 		if ($this->permittedDelete) {
 			$grid->addAction("roleDelete", "")
-				->setConfirm(
-					function ($item) {
-						return "Are you sure to delete role " . $item->getRole() . "?";
-					}
-				)
-				->setTitle("Delete role")
+				->setConfirm("rolemanager.role_action_delete_confirm", "role")
+				->setTitle("rolemanager.role_action_delete")
 				->setIcon("trash");
 		}
+
 
 		return $grid;
 

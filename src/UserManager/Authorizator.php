@@ -6,6 +6,7 @@ namespace Mepatek\UserManager;
 use App\Mepatek\UserManager\Entity\Acl;
 use App\Mepatek\UserManager\Entity\Role;
 use Kdyby\Doctrine\EntityManager;
+use Mepatek\UserManager\Model\Roles;
 use Mepatek\UserManager\Repository\AclRepository;
 use Mepatek\UserManager\Repository\ResourceRepository;
 use Mepatek\UserManager\Repository\RoleRepository;
@@ -19,6 +20,8 @@ use Nette\Security\Permission;
 class Authorizator extends Permission
 {
 
+	/** @var Roles */
+	private $rolesModel;
 
 	/**
 	 * Authorizator constructor.
@@ -27,21 +30,14 @@ class Authorizator extends Permission
 	 * @param EntityManager      $em
 	 * @param ResourceRepository $resourceRepository
 	 */
-	public function __construct(IStorage $storage, EntityManager $em, ResourceRepository $resourceRepository)
-	{
-		// roles
-		$qb = $em->getRepository(Role::class)
-			->createQueryBuilder("r");
-		$roles = $qb
-			->where($qb->expr()->notIn("r.role", ["admin", "guest", "authenticated"]))
-			->getQuery()
-			->getResult();
+	public function __construct(
+		IStorage $storage,
+		EntityManager $em,
+		ResourceRepository $resourceRepository
+	) {
 
-
-		$this->addRole("guest");    // special role for not logged in users
-		$this->addRole("admin");    // special role for admin -> all privileges if not set in acl
-		$this->addRole("authenticated");    // special role for user withour any role
-
+		$this->rolesModel = new Roles($em, $storage);
+		$roles = $this->rolesModel->getCachedRoles();
 
 		foreach ($roles as $role) {
 			$this->addRole($role->getRole());

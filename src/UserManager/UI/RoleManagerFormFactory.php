@@ -56,7 +56,7 @@ class RoleManagerFormFactory
 	/**
 	 * @return RolesListControl
 	 */
-	public function createUsersList()
+	public function createRolesList()
 	{
 		$rolesListControl = new RolesListControl(
 			$this->em,
@@ -87,6 +87,38 @@ class RoleManagerFormFactory
 		$roleEditControl->onBeforeRoleDelete = $this->onBeforeRoleDelete;
 		$roleEditControl->onAfterRoleDelete = $this->onAfterRoleDelete;
 		return $roleEditControl;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getLinkRolesList()
+	{
+		return $this->linkRolesList;
+	}
+
+	/**
+	 * @param string $linkRolesList
+	 */
+	public function setLinkRolesList($linkRolesList)
+	{
+		$this->linkRolesList = $linkRolesList;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getLinkRoleEdit()
+	{
+		return $this->linkRoleEdit;
+	}
+
+	/**
+	 * @param string $linkRoleEdit
+	 */
+	public function setLinkRoleEdit($linkRoleEdit)
+	{
+		$this->linkRoleEdit = $linkRoleEdit;
 	}
 
 }
