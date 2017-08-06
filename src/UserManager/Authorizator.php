@@ -4,8 +4,8 @@ namespace Mepatek\UserManager;
 
 
 use App\Mepatek\UserManager\Entity\Acl;
-use App\Mepatek\UserManager\Entity\Role;
 use Kdyby\Doctrine\EntityManager;
+use Mepatek\UserManager\Model\Acls;
 use Mepatek\UserManager\Model\Roles;
 use Mepatek\UserManager\Repository\AclRepository;
 use Mepatek\UserManager\Repository\ResourceRepository;
@@ -22,6 +22,8 @@ class Authorizator extends Permission
 
 	/** @var Roles */
 	private $rolesModel;
+	/** @var Acls */
+	private $aclsModel;
 
 	/**
 	 * Authorizator constructor.
@@ -37,6 +39,8 @@ class Authorizator extends Permission
 	) {
 
 		$this->rolesModel = new Roles($em, $storage);
+		$this->aclsModel = new Acls($em, $storage);
+
 		$roles = $this->rolesModel->getCachedRoles();
 
 		foreach ($roles as $role) {
@@ -72,5 +76,21 @@ class Authorizator extends Permission
 				$this->allow("admin", $resource->resource, self::ALL);
 			}
 		}
+	}
+
+	/**
+	 * @return Roles
+	 */
+	public function getRolesModel()
+	{
+		return $this->rolesModel;
+	}
+
+	/**
+	 * @return Acls
+	 */
+	public function getAclsModel()
+	{
+		return $this->aclsModel;
 	}
 }

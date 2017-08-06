@@ -4,6 +4,7 @@ namespace Mepatek\UserManager\Model;
 
 
 use App\Mepatek\UserManager\Entity\Role;
+use Doctrine\ORM\UnitOfWork;
 use Kdyby\Doctrine\EntityManager;
 use Nette\Caching\Cache;
 use Nette\Caching\IStorage;
@@ -14,17 +15,17 @@ class Roles
 	/** @var EntityManager */
 	private $em;
 	/** @var Cache */
-	private $cache = null;
+	private $cache;
 
+
+	const CACHE_TAG_ROLES_LIST = "RolesList";
 
 	public function __construct(
 		EntityManager $em,
-		IStorage $storage = null
+		IStorage $storage
 	) {
 		$this->em = $em;
-		if ($storage) {
-			$this->cache = new Cache($storage, "Usermanager.Roles");
-		}
+		$this->cache = new Cache($storage, "Usermanager.Roles");
 	}
 
 	/**
@@ -42,7 +43,7 @@ class Roles
 				[
 					Cache::EXPIRE  => "1 month",
 					Cache::SLIDING => true,
-					Cache::TAGS    => "rolesList",
+					Cache::TAGS    => [self::CACHE_TAG_ROLES_LIST],
 				]
 			);
 		}
@@ -58,6 +59,7 @@ class Roles
 		// roles
 		$roles = $this->em->getRepository(Role::class)
 			->createQueryBuilder("r")
+			->where("r.deleted = 0")
 			->getQuery()
 			->getResult();
 
@@ -85,4 +87,68 @@ class Roles
 
 	}
 
+
+	/**
+	 * @param string $id
+	 *
+	 * @return null|Role
+	 */
+	public function find($id)
+	{
+		return $this->em->find(Role::class, $id);
+	}
+
+	/**
+	 * Save role, clear cache
+	 *
+	 * @param Role $role
+	 */
+	public function save(Role $role)
+	{
+		switch ($this->em->getUnitOfWork()->getEntityState($role)) {
+			case UnitOfWork::STATE_NEW:
+				$this->em->persist($role);
+				break;
+			case UnitOfWork::STATE_DETACHED:
+				$this->em->merge($role);
+				break;
+		}
+		$this->em->flush();
+		$this->clearCache(self::CACHE_TAG_ROLES_LIST);
+	}
+
+
+	/**
+	 * Delete role (deleted), clear cache
+	 *
+	 * @param Role $role
+	 */
+	public function delete(Role $role)
+	{
+		$role->setDeleted(true);
+		$this->save($role);
+	}
+
+	/**
+	 * Clear cache
+	 *
+	 * @param null|string|array $tags null (all) or tags
+	 */
+	public function clearCache($tags = null)
+	{
+		if (is_string($tags)) {
+			$clean = [
+				CACHE::TAGS => [$tags],
+			];
+		} elseif (is_array($tags)) {
+			$clean = [
+				CACHE::TAGS => $tags,
+			];
+		} else {
+			$clean = [
+				CACHE::ALL => true,
+			];
+		}
+		$this->cache->clean($clean);
+	}
 }

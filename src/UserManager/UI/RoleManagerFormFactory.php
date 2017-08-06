@@ -6,6 +6,7 @@ namespace Mepatek\UserManager\UI;
 use Kdyby\Doctrine\EntityManager;
 use Mepatek\Components\UI\FormFactory;
 use Mepatek\Components\UI\GridFactory;
+use Mepatek\UserManager\Authorizator;
 use Mepatek\UserManager\UI\Roles\RoleEditControl;
 use Mepatek\UserManager\UI\Roles\RolesListControl;
 use Nette\SmartObject;
@@ -14,8 +15,8 @@ class RoleManagerFormFactory
 {
 	use SmartObject;
 
-	/** @var EntityManager */
-	private $em;
+	/** @var Authorizator */
+	private $authorizator;
 	/** @var GridFactory */
 	private $gridFactory;
 	/** @var FormFactory */
@@ -38,17 +39,17 @@ class RoleManagerFormFactory
 	/**
 	 * RoleManagerFormFactory constructor.
 	 *
-	 * @param EntityManager $em
+	 * @param Authorizator $authorizator
 	 * @param GridFactory   $gridFactory
 	 * @param FormFactory   $formFactory
 	 */
 	public function __construct(
-		EntityManager $em,
+		Authorizator $authorizator,
 		GridFactory $gridFactory,
 		FormFactory $formFactory
 	)
 	{
-		$this->em = $em;
+		$this->authorizator = $authorizator;
 		$this->gridFactory = $gridFactory;
 		$this->formFactory = $formFactory;
 	}
@@ -59,7 +60,7 @@ class RoleManagerFormFactory
 	public function createRolesList()
 	{
 		$rolesListControl = new RolesListControl(
-			$this->em,
+			$this->authorizator->getRolesModel(),
 			$this->gridFactory,
 			$this->linkRoleEdit
 		);
@@ -74,10 +75,10 @@ class RoleManagerFormFactory
 	/**
 	 * @return RoleEditControl
 	 */
-	public function createUserEdit()
+	public function createRoleEdit()
 	{
 		$roleEditControl = new RoleEditControl(
-			$this->em,
+			$this->authorizator->getRolesModel(),
 			$this->gridFactory,
 			$this->formFactory,
 			$this->linkRolesList

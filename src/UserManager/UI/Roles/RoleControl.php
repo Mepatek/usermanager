@@ -4,14 +4,14 @@ namespace Mepatek\UserManager\UI\Roles;
 
 
 use App\Mepatek\UserManager\Entity\Role;
-use Kdyby\Doctrine\EntityManager;
+use Mepatek\UserManager\Model\Roles;
 use Nette\Application\UI\Control;
 use Nette\Localization\ITranslator;
 
 abstract class RoleControl extends Control
 {
-	/** @var EntityManager */
-	protected $em;
+	/** @var Roles */
+	protected $rolesModel;
 
 	/** @var ITranslator */
 	protected $translator;
@@ -28,17 +28,13 @@ abstract class RoleControl extends Control
 	/**
 	 * Find role by ID
 	 *
-	 * @param string $role
+	 * @param string $id
 	 *
 	 * @return Role
 	 */
-	protected function findUserById($role)
+	protected function findRole($id)
 	{
-		$role = null;
-		if ($role) {
-			$role = $this->em->find(Role::class, $role);
-		}
-		return $role;
+		return $this->rolesModel->find($id);
 	}
 
 
@@ -53,8 +49,7 @@ abstract class RoleControl extends Control
 		if ($runEvents) {
 			$this->onBeforeRoleSave($role);
 		}
-		$this->em->persist($role);
-		$this->em->flush();
+		$this->rolesModel->save($role);
 		if ($runEvents) {
 			$this->onAfterRoleSave($role);
 		}
@@ -68,9 +63,7 @@ abstract class RoleControl extends Control
 	protected function deleteRole(Role $role)
 	{
 		$this->onBeforeRoleDelete($role);
-		$role->setDeleted(true);
-		$this->em->persist($role);
-		$this->em->flush();
+		$this->rolesModel->delete($role);
 		$this->onAfterRoleDelete($role);
 	}
 

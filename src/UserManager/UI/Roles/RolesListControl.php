@@ -12,6 +12,7 @@ namespace Mepatek\UserManager\UI\Roles;
 use App\Mepatek\UserManager\Entity\Role;
 use Kdyby\Doctrine\EntityManager;
 use Mepatek\Components\UI\GridFactory;
+use Mepatek\UserManager\Model\Roles;
 use Ublaboo\DataGrid\DataGrid;
 
 class RolesListControl extends RoleControl
@@ -27,13 +28,13 @@ class RolesListControl extends RoleControl
 	/**
 	 * RolesListControl constructor.
 	 *
-	 * @param EntityManager $em
-	 * @param GridFactory   $gridFactory
-	 * @param string        $linkEdit
+	 * @param Roles       $rolesModel
+	 * @param GridFactory $gridFactory
+	 * @param string      $linkEdit
 	 */
-	public function __construct(EntityManager $em, GridFactory $gridFactory, $linkEdit)
+	public function __construct(Roles $rolesModel, GridFactory $gridFactory, $linkEdit)
 	{
-		$this->em = $em;
+		$this->rolesModel = $rolesModel;
 		$this->gridFactory = $gridFactory;
 		$this->linkEdit = $linkEdit;
 		parent::__construct();
@@ -57,13 +58,10 @@ class RolesListControl extends RoleControl
 	 */
 	public function createComponentRolesListGrid($name)
 	{
-		$qb = $this->em->getRepository(Role::class)
-			->createQueryBuilder("role")
-			->select("role")
-			->where("role.deleted = 0");
+		$roles = $this->rolesModel->getCachedRoles();
 
 		$grid = $this->gridFactory->create(
-			$qb,
+			$roles,
 			"role",
 			20,
 			[],

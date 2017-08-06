@@ -5,6 +5,7 @@ namespace Mepatek\UserManager;
 use App\Mepatek\UserManager\Entity\User;
 use App\Mepatek\UserManager\Entity\UserActivity;
 use Kdyby\Doctrine\EntityManager;
+use Mepatek\UserManager\Model\Users;
 use Nette\Security\AuthenticationException;
 use Nette\Security\IAuthenticator,
 	Mepatek\UserManager\AuthDrivers\IAuthDriver;
@@ -23,6 +24,9 @@ class Authenticator implements IAuthenticator
 	/** @var IAuthDriver[] */
 	protected $authDrivers = [];
 
+	/** @var  Users */
+	private $usersModel;
+
 	/**
 	 * Authenticator constructor.
 	 *
@@ -31,6 +35,7 @@ class Authenticator implements IAuthenticator
 	public function __construct(EntityManager $em)
 	{
 		$this->em = $em;
+		$this->usersModel = new Users($em);
 	}
 
 	/**
@@ -281,6 +286,14 @@ class Authenticator implements IAuthenticator
 	public function addAuthDriver(IAuthDriver $authDriver)
 	{
 		$this->authDrivers[] = $authDriver;
+	}
+
+	/**
+	 * @return Users
+	 */
+	public function getUsersModel()
+	{
+		return $this->usersModel;
 	}
 
 }
