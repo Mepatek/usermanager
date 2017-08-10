@@ -3,21 +3,32 @@
 namespace Mepatek\UserManager\UI\Roles;
 
 
+use App\Mepatek\UserManager\Entity\Acl;
 use App\Mepatek\UserManager\Entity\Role;
 use Mepatek\Components\Form;
 use Mepatek\Components\UI\FormFactory;
 use Mepatek\Components\UI\GridFactory;
+use Mepatek\UserManager\Authorizator;
+use Mepatek\UserManager\Entity\ResourceObject;
+use Mepatek\UserManager\Model\Acls;
 use Mepatek\UserManager\Model\Roles;
+use Mepatek\UserManager\Repository\ResourceRepository;
 
 class RoleEditControl extends RoleControl
 {
 
+	/** @var ResourceRepository */
+	private $resourceRepository;
 	/** @var GridFactory */
 	private $gridFactory;
 	/** @var FormFactory */
 	private $formFactory;
 	/** @var string */
 	private $linkList;
+	/** @var Authorizator */
+	private $authorizator;
+	/** @var Acls */
+	private $aclsModel;
 
 	/** @var boolean */
 	private $permittedDelete = true;
@@ -25,24 +36,32 @@ class RoleEditControl extends RoleControl
 	/** @var Role */
 	private $role = null;
 
+	/** @var ResourceObject[] */
+	private $resources = [];
+
 	/**
 	 * RoleEditControl constructor.
 	 *
-	 * @param Roles       $rolesModel
-	 * @param GridFactory $gridFactory
-	 * @param FormFactory $formFactory
-	 * @param string      $linkList
+	 * @param Authorizator $authorizator
+	 * @param GridFactory  $gridFactory
+	 * @param FormFactory  $formFactory
+	 * @param string       $linkList
 	 */
 	public function __construct(
-		Roles $rolesModel,
+		Authorizator $authorizator,
 		GridFactory $gridFactory,
 		FormFactory $formFactory,
 		$linkList
 	) {
-		$this->rolesModel = $rolesModel;
+		$this->authorizator = $authorizator;
+		$this->rolesModel = $authorizator->getRolesModel();
+		$this->aclsModel = $authorizator->getAclsModel();
+		$this->resourceRepository = $authorizator->getResourceRepository();
 		$this->gridFactory = $gridFactory;
 		$this->formFactory = $formFactory;
 		$this->linkList = $linkList;
+		$this->resources = $this->resourceRepository->findBy([]);
+
 		parent::__construct();
 	}
 
@@ -56,7 +75,7 @@ class RoleEditControl extends RoleControl
 
 		$this->readRole();
 		$template->role = $this->role;
-
+		$template->resources = $this->resources;
 		$template->render(__DIR__ . '/' . substr(__CLASS__, strrpos(__CLASS__, '\\') + 1) . '.latte');
 
 
@@ -82,18 +101,21 @@ class RoleEditControl extends RoleControl
 	 *
 	 * @return \Mepatek\Components\FormBootstrap
 	 */
-		public function createComponentRoleEditForm($name)
+	public function createComponentRoleEditForm($name)
 	{
 		$role = $this->readRole();
 
 		$form = $this->formFactory->createBootstrap("vertical");
 
 		$form->addHidden("id");
-		$form->addText("role", "rolemanager.role")
-			->setRequired(true);
+
+		if (!$role) {
+			$form->addText("role", "rolemanager.role")
+				->setRequired(true);
+		}
 		$form->addText("name", "rolemanager.role_name")
 			->setRequired(true);
-		$form->addText("description", "rolemanager.role_description");
+		$form->addTextArea("description", "rolemanager.role_description");
 
 		$form->addSubmit("send", "rolemanager.role_save");
 		if ($this->permittedDelete) {
@@ -101,10 +123,9 @@ class RoleEditControl extends RoleControl
 		}
 
 		if ($role) {
-			$form["role"]->setDisabled(true);
 			$form->setDefaults(
 				[
-					"id"        => $role->getRole(),
+					"id"          => $role->getRole(),
 					"role"        => $role->getRole(),
 					"name"        => $role->getName(),
 					"description" => $role->getDescription(),
@@ -124,7 +145,7 @@ class RoleEditControl extends RoleControl
 					if ($role) {
 						$role = $this->findRole($role);
 					} else {
-						$role = new User();
+						$role = new Role();
 						$role->setRole($values->role);
 					}
 					$role->setName($values->name);
@@ -150,5 +171,65 @@ class RoleEditControl extends RoleControl
 
 	}
 
+	/**
+	 * @param $name
+	 *
+	 * @return \Mepatek\Components\FormBootstrap
+	 */
+	public function createComponentAclForm($name)
+	{
+		$role = $this->readRole();
+
+		$form = $this->formFactory->createBootstrap();
+
+		$form->addHidden("role", $role->getRole());
+		foreach ($this->resources as $resource) {
+			foreach ($resource->getPrivileges() as $privilege => $privilegeTitle) {
+				$inputName = $resource->getResource() . "_" . $privilege;
+				$isAllowed = $this->authorizator->isAllowed(
+					$role->getRole(),
+					$resource->getResource(),
+					$privilege
+				);
+				$form->addCheckbox($inputName, $privilegeTitle)
+					->setDefaultValue($isAllowed);
+			}
+		}
+
+		$form->addSubmit("send", "rolemanager.acl_save");
+
+
+		$form->onSuccess[] = function (Form $form, $values) {
+			$role = $this->findRole($values->role);
+
+			foreach ($this->resources as $resource) {
+				foreach ($resource->getPrivileges() as $privilege => $privilegeTitle) {
+					$inputName = $resource->getResource() . "_" . $privilege;
+					$acl = $this->aclsModel->findByRoleAndResource($role, $resource->getResource());
+					if (!$acl) {
+						$acl = new Acl();
+						$acl->setRole($role);
+						$acl->setResource($resource->getResource());
+					}
+					$isAllowed = $values->$inputName;
+					if ($isAllowed) {
+						$acl->allow($privilege);
+					} else {
+						$acl->deny($privilege);
+					}
+					$this->aclsModel->save($acl);
+				}
+			}
+
+			if ($this->presenter->isAjax()) {
+				$this->presenter->redrawControl("flashes");
+				$this->redrawControl("permissions");
+			}
+
+		};
+
+		return $form;
+
+	}
 
 }

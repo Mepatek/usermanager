@@ -1,1 +1,51 @@
-{control roleEditForm}
+<div class="row">
+	<div class="col-md-5 col-sm-12">
+		<div class="portlet light">
+			<div class="portlet-title">
+				<div class="caption">
+					<i class="icon-users"></i>
+					<span class="caption-subject bold uppercase">{if $role}{_}rolemanager.role{/_}: {$role->getRole()}{else}rolemanager.new_role{/if}</span>
+					{*<span class="caption-helper">weekly stats...</span>*}
+				</div>
+			</div>
+			<div class="portlet-body form">
+				{control roleEditForm}
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-7 col-sm-12" n:if="$role" n:snippet="permissions">
+		<div class="portlet light">
+			<div class="portlet-title">
+				<div class="caption">
+					<i class="icon-key"></i>
+					<span class="caption-subject bold uppercase">Oprávnění</span>
+					{*<span class="caption-helper">weekly stats...</span>*}
+				</div>
+			</div>
+			<div class="portlet-body">
+				{form aclForm, class=>ajaxa, role=>form}
+					<div n:foreach="$resources as $resource">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h3 class="panel-title" title="{$resource->getDescription()}">{$resource->getTitle()}</h3>
+							</div>
+							<div class="panel-body">
+								<div class="mt-checkbox-list">
+									<label class="mt-checkbox" n:foreach="$resource->getPrivileges() as $privilege=>$privilegeTitle">
+										{var $inputName = $resource->getResource() . "_" . $privilege}
+										<input n:name="$inputName" type="checkbox"> {$privilegeTitle}
+										<span></span>
+									</label>
+								</div>
+							</div>
+						</div>
+					</div>
+					<button n:name="send" class="btn btn-primary">
+						<i class="fa fa-save"></i> {_}rolemanager.acl_save{/_}
+					</button>
+				{/form}
+			</div>
+		</div>
+
+	</div>

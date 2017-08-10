@@ -24,6 +24,8 @@ class Authorizator extends Permission
 	private $rolesModel;
 	/** @var Acls */
 	private $aclsModel;
+	/** @var ResourceRepository */
+	private $resourceRepository;
 
 	/**
 	 * Authorizator constructor.
@@ -38,14 +40,20 @@ class Authorizator extends Permission
 		ResourceRepository $resourceRepository
 	) {
 
+		$this->resourceRepository = $resourceRepository;
 		$this->rolesModel = new Roles($em, $storage);
-		$this->aclsModel = new Acls($em, $storage);
 
 		$roles = $this->rolesModel->getCachedRoles();
 
+		$roleAdmin = null;
 		foreach ($roles as $role) {
+			if ($role->getRole()=="admin") {
+				$roleAdmin = $role;
+			}
 			$this->addRole($role->getRole());
 		}
+
+		$this->aclsModel = new Acls($em, $resourceRepository, $roleAdmin, $storage);
 
 		// resources
 		$resources = $resourceRepository->findBy([]);
@@ -56,24 +64,14 @@ class Authorizator extends Permission
 		}
 
 		// acl
-		$acls = $em->getRepository(Acl::class)->findAll();
+		$acls = $this->aclsModel->getCachedAcls();
 
-		$adminSet = false;
 		foreach ($acls as $acl) {
-			if ($acl->getRole() == "admin") {
-				$adminSet = true;
+			if ($acl->getAllowed() !== null) {
+				$this->allow($acl->getRole()->getRole(), $acl->getResource(), $acl->getAllowArray());
 			}
-			if ($acl->getAllow() !== null) {
-				$this->allow($acl->role, $acl->resource, $acl->getAllowArray());
-			}
-			if ($acl->deny !== null) {
-				$this->deny($acl->role, $acl->resource, $acl->getDenyArray());
-			}
-		}
-		// set admin privileges if not set
-		if (!$adminSet) {
-			foreach ($resources as $resource) {
-				$this->allow("admin", $resource->resource, self::ALL);
+			if ($acl->getDenied() !== null) {
+				$this->deny($acl->getRole()->getRole(), $acl->getResource(), $acl->getDenyArray());
 			}
 		}
 	}
@@ -93,4 +91,13 @@ class Authorizator extends Permission
 	{
 		return $this->aclsModel;
 	}
+
+	/**
+	 * @return ResourceRepository
+	 */
+	public function getResourceRepository()
+	{
+		return $this->resourceRepository;
+	}
+
 }

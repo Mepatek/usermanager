@@ -35,7 +35,7 @@ class Roles
 	public function getCachedRoles()
 	{
 		$roles = $this->cache->load("Roles list");
-		if (!$roles) {
+		if (!is_array($roles)) {
 			$roles = $this->getRoles();
 			$this->cache->save(
 				"Roles list",

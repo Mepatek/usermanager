@@ -107,7 +107,10 @@ class Acl
 	 */
 	public function getAllowArray()
 	{
-		return $this->allowed;
+		if (is_array($this->allowed)) {
+			return $this->allowed;
+		}
+		return explode(",", trim($this->allowed));
 	}
 
 	/**
@@ -116,10 +119,10 @@ class Acl
 	public function setAllowed($allowed)
 	{
 		if (is_string($allowed)) {
-			$allowed = explode(",", $allowed);
+			$this->allowed = $allowed;
 		}
 		if (is_array($allowed) and count($allowed) > 0) {
-			$this->allowed = $allowed;
+			$this->allowed = join(",", $allowed);
 		} else {
 			$this->allowed = null;
 		}
@@ -138,7 +141,10 @@ class Acl
 	 */
 	public function getDenyArray()
 	{
-		return $this->denied;
+		if (is_array($this->denied)) {
+			return $this->denied;
+		}
+		return explode(",", trim($this->denied));
 	}
 
 	/**
@@ -147,13 +153,60 @@ class Acl
 	public function setDenied($denied)
 	{
 		if (is_string($denied)) {
-			$denied = explode(",", $denied);
+			$this->denied = $denied;
 		}
 		if (is_array($denied) and count($denied) > 0) {
-			$this->denied = $denied;
+			$this->denied = join(",", $denied);
 		} else {
 			$this->denied = null;
 		}
 	}
 
+	/**
+	 * @param string $privilege
+	 */
+	public function allow($privilege)
+	{
+		$denied = array_flip($this->getDenyArray());
+		$allowed = array_flip($this->getAllowArray());
+
+		if (isset($denied[$privilege])) {
+			unset($denied[$privilege]);
+		}
+		$allowed[$privilege] = true;
+
+		if (isset($allowed[""])) {
+			unset($allowed[""]);
+		}
+		if (isset($denied[""])) {
+			unset($denied[""]);
+		}
+
+		$this->setDenied(array_keys($denied));
+		$this->setAllowed(array_keys($allowed));
+	}
+
+	/**
+	 * @param string $privilege
+	 */
+	public function deny($privilege)
+	{
+		$denied = array_flip($this->getDenyArray());
+		$allowed = array_flip($this->getAllowArray());
+
+		if (isset($allowed[$privilege])) {
+			unset($allowed[$privilege]);
+		}
+		$denied[$privilege] = true;
+
+		if (isset($allowed[""])) {
+			unset($allowed[""]);
+		}
+		if (isset($denied[""])) {
+			unset($denied[""]);
+		}
+
+		$this->setDenied(array_keys($denied));
+		$this->setAllowed(array_keys($allowed));
+	}
 }

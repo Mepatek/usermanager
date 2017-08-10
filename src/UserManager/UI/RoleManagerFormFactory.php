@@ -7,6 +7,7 @@ use Kdyby\Doctrine\EntityManager;
 use Mepatek\Components\UI\FormFactory;
 use Mepatek\Components\UI\GridFactory;
 use Mepatek\UserManager\Authorizator;
+use Mepatek\UserManager\Repository\ResourceRepository;
 use Mepatek\UserManager\UI\Roles\RoleEditControl;
 use Mepatek\UserManager\UI\Roles\RolesListControl;
 use Nette\SmartObject;
@@ -21,6 +22,8 @@ class RoleManagerFormFactory
 	private $gridFactory;
 	/** @var FormFactory */
 	private $formFactory;
+	/** @var ResourceRepository */
+	private $resourceRepository;
 	/** @var string */
 	private $linkRolesList;
 	/** @var string */
@@ -46,12 +49,14 @@ class RoleManagerFormFactory
 	public function __construct(
 		Authorizator $authorizator,
 		GridFactory $gridFactory,
-		FormFactory $formFactory
+		FormFactory $formFactory,
+		ResourceRepository $resourceRepository
 	)
 	{
 		$this->authorizator = $authorizator;
 		$this->gridFactory = $gridFactory;
 		$this->formFactory = $formFactory;
+		$this->resourceRepository = $resourceRepository;
 	}
 
 	/**
@@ -78,7 +83,7 @@ class RoleManagerFormFactory
 	public function createRoleEdit()
 	{
 		$roleEditControl = new RoleEditControl(
-			$this->authorizator->getRolesModel(),
+			$this->authorizator,
 			$this->gridFactory,
 			$this->formFactory,
 			$this->linkRolesList
