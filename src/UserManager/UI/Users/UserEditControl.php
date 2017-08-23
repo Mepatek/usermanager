@@ -260,7 +260,7 @@ class UserEditControl extends UserControl
 			->createQueryBuilder("ua")
 			->select("ua")
 			->where("ua.user = :user")
-			->orderBy("ua.datetime", "DESC")
+//			->orderBy("ua.datetime", "DESC")
 			->setParameter("user", $this->readUser());
 
 		$grid = $this->gridFactory->create(
@@ -276,6 +276,7 @@ class UserEditControl extends UserControl
 			->setFormat("d.m.Y H:i");
 		$grid->addColumnText("ip", "IP");
 		$grid->addColumnText("type", "Akce");
+		$grid->setDefaultSort(["datetime"=>"DESC"]);
 
 		return $grid;
 	}
@@ -294,7 +295,8 @@ class UserEditControl extends UserControl
 		$form->addHidden("id", $user->getId());
 
 		foreach ($roles as $role) {
-			$form->addCheckbox($role->getRole(), $role->getName())
+			$checkbox = bin2hex($role->getRole());
+			$form->addCheckbox($checkbox, $role->getName() ?: $role->getRole())
 				->setDefaultValue($user->isInRole($role->getRole()));
 		}
 
@@ -305,7 +307,8 @@ class UserEditControl extends UserControl
 			$user = $this->readUser($id);
 			$user->setRoles([]);
 			foreach ($values as $key => $value) {
-				if ($value) {
+				if ($value and $key!=="id") {
+					$key = hex2bin($key);
 					$role = $this->em->find(Role::class, $key);
 					if ($role) {
 						$user->addRole($role);

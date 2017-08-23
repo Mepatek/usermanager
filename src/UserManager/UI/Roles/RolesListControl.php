@@ -101,7 +101,7 @@ class RolesListControl extends RoleControl
 
 	public function handleRoleDelete($role)
 	{
-		$role = $this->findRoleById($role);
+		$role = $this->findRole($role);
 		$this->deleteRole($role);
 	}
 

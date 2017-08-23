@@ -63,28 +63,37 @@ class Roles
 			->getQuery()
 			->getResult();
 
-		$builtInRoles = [
-			"admin",                    // special role for not logged in users
-			"guest",                    // special role for admin -> all privileges if not set in acl
-			"authenticated",            // special role for user without any role
-		];
+
+		$builtInRoles = $this->getBuiltInRoles();
 
 		foreach ($roles as $role) {
-			foreach ($builtInRoles as $key => $bir) {
-				if ($role->getRole() == $bir) {
-					unset($builtInRoles[$key]);
-				}
+			$key = $role->getRole();
+			if (isset($builtInRoles[$key])) {
+				unset($builtInRoles[$key]);
 			}
 		}
 
-		foreach ($builtInRoles as $bir) {
+		foreach ($builtInRoles as $key => $bir) {
 			$builtInRole = new Role();
-			$builtInRole->setRole($bir);
+			$builtInRole->setRole($key);
+			$builtInRole->setDescription($bir);
 			$roles[] = $builtInRole;
 		}
 		return $roles;
 
 
+	}
+
+
+	public function getBuiltInRoles()
+	{
+		$builtInRoles = [
+			"admin"         => "Administrators",    // special role for not logged in users
+			"guest"         => "Guests",    // special role for admin -> all privileges if not set in acl
+			"authenticated" => "Authenticated users",    // special role for user without any role
+		];
+
+		return $builtInRoles;
 	}
 
 

@@ -11,7 +11,6 @@ use Mepatek\Components\UI\GridFactory;
 use Mepatek\UserManager\Authorizator;
 use Mepatek\UserManager\Entity\ResourceObject;
 use Mepatek\UserManager\Model\Acls;
-use Mepatek\UserManager\Model\Roles;
 use Mepatek\UserManager\Repository\ResourceRepository;
 
 class RoleEditControl extends RoleControl
@@ -91,7 +90,9 @@ class RoleEditControl extends RoleControl
 	{
 		if (!$this->role) {
 			$id = $id ? $id : $this->getPresenter()->getParameter("role");
-			$this->role = $this->findRole($id);
+			if ($id) {
+				$this->role = $this->findRole($id);
+			}
 		}
 		return $this->role;
 	}

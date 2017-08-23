@@ -169,7 +169,8 @@ class AdLdapAuthDriver implements IAuthDriver
 		foreach ($this->group2Role as $group => $role) {
 			if (in_array($group, $memberOf, true)) {
 				if ($this->roleExists($role)) {
-					$user->addRole($role);
+		      $roleObj = $this->em->find(Role::class, $role);
+					$user->addRole($roleObj);
 				}
 			}
 		}
