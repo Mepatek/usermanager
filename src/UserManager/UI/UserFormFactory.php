@@ -2,19 +2,27 @@
 
 namespace Mepatek\UserManager\UI;
 
+use Kdyby\Doctrine\EntityManager;
+use Mepatek\Components\International\LanguageHelper;
+use Mepatek\Components\UI\FormFactory;
+use Mepatek\Components\UI\GridFactory;
+use Mepatek\UserManager\UI\User\ProfileControl;
 use Nette\Application\UI\Form,
-	Nette\Object,
 	Nette\Security\User,
 	Nette\Utils\Validators,
 	Nette\Security\AuthenticationException,
-	Nette\Localization\ITranslator;
+	Nette\Localization\ITranslator,
+	Nette\SmartObject;
 
 /**
  * Class UserFormFactory
  * @package Mepatek\UserManager\UI
  */
-class UserFormFactory extends Object
+class UserFormFactory
 {
+
+	use SmartObject;
+
 	/**
 	 * Minimum password length
 	 * @var integer
@@ -25,6 +33,17 @@ class UserFormFactory extends Object
 	 * @var integer
 	 */
 	public $passwordMinLevel = 2;
+
+	/**
+	 * Expiration time for not remember user
+	 * @var string
+	 */
+	public $expirationTime = "60 minutes";
+	/**
+	 * Expiration time for remember user
+	 * @var string
+	 */
+	public $expirationTimeRemember = "7 days";
 
 	/**
 	 * Translator. If set all texts are translated
@@ -62,6 +81,12 @@ class UserFormFactory extends Object
 	 * @var array
 	 */
 	public $onNotChangePassword;
+
+	/** @var array  */
+	public $onBeforeUserChangeProfile = [];
+	/** @var array  */
+	public $onAfterUserChangeProfile = [];
+
 	/**
 	 * If do not use translator, can change forms and error messages
 	 *
@@ -83,7 +108,7 @@ class UserFormFactory extends Object
 		"newPasswordConfirm"          => "Confirm new password",
 		"newPasswordConfirm_notSame"  => "Password not same",
 		"newPasswordConfirm_required" => "Please enter password",
-		"recoveryPasswordSubmit"      => "Change password",
+-		"recoveryPasswordSubmit"      => "Change password",
 		"changePasswordSubmit"        => "Change password",
 
 		"err_username_or_password_incorrect" => "The username or password you entered is incorrect.",
@@ -94,6 +119,36 @@ class UserFormFactory extends Object
 	];
 	/** @var User (must set) */
 	protected $user;
+
+	/** @var EntityManager */
+	private $em;
+	/** @var GridFactory */
+	private $gridFactory;
+	/** @var FormFactory */
+	private $formFactory;
+	/** @var LanguageHelper */
+	private $languageHelper;
+
+	/**
+	 * UserManagerFormsFactory constructor.
+	 *
+	 * @param EntityManager $em
+	 * @param GridFactory   $gridFactory
+	 * @param FormFactory   $formFactory
+	 * @param LanguageHelper $languageHelper
+	 */
+	public function __construct(
+		EntityManager $em,
+		GridFactory $gridFactory,
+		FormFactory $formFactory,
+		LanguageHelper $languageHelper
+	)
+	{
+		$this->em = $em;
+		$this->gridFactory = $gridFactory;
+		$this->formFactory = $formFactory;
+		$this->languageHelper = $languageHelper;
+	}
 
 	/**
 	 * Create form component for login
@@ -150,9 +205,9 @@ class UserFormFactory extends Object
 	public function loginFormSucceeded(Form $form, $values)
 	{
 		if ($values->remember) {
-			$this->user->setExpiration('7 days', false);
+			$this->user->setExpiration($this->expirationTimeRemember, false);
 		} else {
-			$this->user->setExpiration('60 minutes', true);
+			$this->user->setExpiration($this->expirationTime, true);
 		}
 
 		try {
@@ -369,4 +424,21 @@ class UserFormFactory extends Object
 	{
 		$this->user = $user;
 	}
+
+
+	/**
+	 * @return ProfileControl
+	 */
+	public function createUserProfile()
+	{
+		$userProfileControl = new ProfileControl(
+			$this->em,
+			$this->formFactory,
+			$this->languageHelper
+		);
+		$userProfileControl->onBeforeUserChangeProfile = $this->onBeforeUserChangeProfile;
+		$userProfileControl->onAfterUserChangeProfile = $this->onAfterUserChangeProfile;
+		return $userProfileControl;
+	}
+
 }
