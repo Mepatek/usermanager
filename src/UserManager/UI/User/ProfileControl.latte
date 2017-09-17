@@ -1,1 +1,44 @@
-{control profileForm}
+<div class="user_edit">
+	<div class="profile">
+		<div class="row">
+			<div class="col-md-3">
+				<ul n:if="$user" class="list-unstyled profile-nav">
+					<li>
+						{form userThumbnailForm}
+							<div class="slim"
+											{*data-service="async.php"*}
+											{*data-fetcher="fetch.php"*}
+									 data-default-input-name="upload"
+									 data-ratio="1:1"
+									 data-meta-user-id="{$user ? $user->getId() : null}"
+									 data-size="300,300"
+									 data-max-file-size="10"
+									 data-service="{link UploadThumbnail!}"
+									 style="width: 100%;min-height: 200px">
+								<img n:if="$user and $user->hasThumbnail()" src="{$user->getThumbnail()|datastream}" alt=""/>
+								<input type="file" n:name="upload" accept="image/jpeg, image/png, image/gif, .jpg">
+								{*n:name="$property"*}
+							</div>
+						{/form}
+					</li>
+
+					{*todo další odkazy*}
+					<li n:if="$user" n:foreach="$userLinks as $userLink">
+						<a href="{if $userLink->link}{$userLink->link}{else}javascript;{/if}"> {$userLink->description}
+							<span n:if="$userLink->counter"> {$userLink->counter} </span>
+						</a>
+					</li>
+				</ul>
+			</div>
+
+			<div class="col-md-9">
+				<div class="row">
+					<div class="col-md-12 profile-info">
+						{control profileForm}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+

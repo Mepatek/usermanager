@@ -3,7 +3,7 @@
 namespace Mepatek\UserManager\UI\Users;
 
 
-use App\Components\Slim\Slim;
+use Mepatek\UserManager\UI\Components\Slim\Slim;
 use App\Mepatek\UserManager\Entity\Role;
 use App\Mepatek\UserManager\Entity\User;
 use App\Mepatek\UserManager\Entity\UserActivity;

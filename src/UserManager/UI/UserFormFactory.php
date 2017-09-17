@@ -83,9 +83,9 @@ class UserFormFactory
 	public $onNotChangePassword;
 
 	/** @var array  */
-	public $onBeforeUserChangeProfile = [];
+	public $onBeforeUserSave = [];
 	/** @var array  */
-	public $onAfterUserChangeProfile = [];
+	public $onAfterUserSave = [];
 
 	/**
 	 * If do not use translator, can change forms and error messages
@@ -108,7 +108,7 @@ class UserFormFactory
 		"newPasswordConfirm"          => "Confirm new password",
 		"newPasswordConfirm_notSame"  => "Password not same",
 		"newPasswordConfirm_required" => "Please enter password",
--		"recoveryPasswordSubmit"      => "Change password",
+		"recoveryPasswordSubmit"      => "Change password",
 		"changePasswordSubmit"        => "Change password",
 
 		"err_username_or_password_incorrect" => "The username or password you entered is incorrect.",
@@ -117,6 +117,7 @@ class UserFormFactory
 		"err_password_too_simple"            => "Password is too simple, it should consist of large and small letters, numbers and special characters.",
 		"err_password_unable_to_change"      => "Unable to change password (token is expire)",
 	];
+
 	/** @var User (must set) */
 	protected $user;
 
@@ -436,8 +437,8 @@ class UserFormFactory
 			$this->formFactory,
 			$this->languageHelper
 		);
-		$userProfileControl->onBeforeUserChangeProfile = $this->onBeforeUserChangeProfile;
-		$userProfileControl->onAfterUserChangeProfile = $this->onAfterUserChangeProfile;
+		$userProfileControl->onBeforeUserSave = $this->onBeforeUserSave;
+		$userProfileControl->onAfterUserSave = $this->onAfterUserSave;
 		return $userProfileControl;
 	}
 
