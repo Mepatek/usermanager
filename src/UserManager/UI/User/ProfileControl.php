@@ -2,13 +2,13 @@
 
 namespace Mepatek\UserManager\UI\User;
 
-
 use Mepatek\UserManager\UI\Components\Slim\Slim;
 use App\Mepatek\UserManager\Entity\User;
 use Kdyby\Doctrine\EntityManager;
 use Mepatek\Components\International\LanguageHelper;
 use Mepatek\Components\UI\FormFactory;
 use Nette\Application\UI\Control;
+use Nette\Forms\Form;
 
 class ProfileControl extends Control
 {
@@ -75,31 +75,61 @@ class ProfileControl extends Control
 	 */
 	public function createComponentProfileForm()
 	{
+		$this->readUser();
+
 		$form = $this->formFactory->createBootstrap();
 
-		$form->addText("userName", "userform.user_name");
-		$form->addText("fullName", "userform.user_full_name");
+		$form->addText("userName", "userform.user_name")
+			->setDisabled(true);
+		$form->addText("fullName", "userform.user_full_name")
+			->setRequired(true);
+
 		$form->addText("title", "userform.user_title");
-		$form->addText("email", "userform.user_email");
+		$form->addText("email", "userform.user_email")
+			->setRequired(true)
+			->addRule(Form::EMAIL);
 		$form->addText("phone", "userform.user_phone");
-		$form->addText("language", "userform.user_language");
+		$form->addSelect("language", "userform.user_language")
+			->setPrompt("userform.user_select_language")
+			->setItems(
+				$this->languageHelper->getSelectItems(
+					$this->user->getLanguage()
+				)
+			);
 
 //		userform.user_select_language: Vyberte jazyk
 //		userform.user_language: Jazyk
 //		userform.user_thumbnail: Fotografie
 		$form->addSubmit("send", "userform.user_save");
 
-		$this->readUser();
 		$form->setDefaults(
 			[
 				"userName" => $this->user->getUserName(),
 				"fullName" => $this->user->getFullName(),
-				"title" => $this->user->getTitle(),
-				"email" => $this->user->getEmail(),
-				"phone" => $this->user->getPhone(),
+				"title"    => $this->user->getTitle(),
+				"email"    => $this->user->getEmail(),
+				"phone"    => $this->user->getPhone(),
 				"language" => $this->user->getLanguage(),
 			]
 		);
+
+		$form->onSuccess[] = function ($form, $values) {
+			$this->readUser();
+			$this->user->setFullName($values->fullName);
+			$this->user->setTitle($values->title);
+			$this->user->setEmail($values->email);
+			$this->user->setPhone($values->phone);
+			$this->user->setLanguage($values->language);
+
+			$idenity = $this->presenter->getUser()->getIdentity();
+			$idenity->fullName = $values->fullName;
+			$idenity->title = $values->title;
+			$idenity->email = $values->email;
+			$idenity->phone = $values->phone;
+			$idenity->language = $values->language;
+
+			$this->saveUser();
+		};
 
 		return $form;
 	}
@@ -112,6 +142,10 @@ class ProfileControl extends Control
 			$id = $image["meta"]->userId;
 			$this->readUser($id);
 			$this->user->setThumbnail($image['output']['data']);
+
+			$idenity = $this->presenter->getUser()->getIdentity();
+			$idenity->thumbnail = $this->user->getThumbnail();
+
 			$this->saveUser();
 			exit();
 		}
@@ -137,6 +171,8 @@ class ProfileControl extends Control
 				$image = $thumbnail->toImage();
 				$this->readUser();
 				$this->user->setThumbnail((string)$image);
+				$idenity = $this->presenter->getUser()->getIdentity();
+				$idenity->thumbnail = $this->user->getThumbnail();
 				$this->saveUser();
 //				$this->flashMessage("");
 			}
