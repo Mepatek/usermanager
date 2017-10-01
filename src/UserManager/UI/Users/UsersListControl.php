@@ -93,7 +93,7 @@ class UsersListControl extends UserControl
 		$grid->addColumnDateTime("created", "usermanager.user_created")
 			->setDefaultHide();
 		$grid->addColumnDateTime("lastLogged", "usermanager.user_last_logged")
-			->setFormat("d.m.Y H:m:s");
+			->setFormat("d.m.Y H:i:s");
 		$disabledColumn = $grid->addColumnStatus("disabled", "usermanager.user_disabled_caption")
 			->setCaret(false)
 			->addOption(1, 'usermanager.user_disabled')
